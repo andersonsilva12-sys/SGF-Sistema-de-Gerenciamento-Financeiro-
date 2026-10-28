@@ -1,0 +1,112 @@
+    <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGF - Página principal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/scripts/main.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="container cabecalho">
+            <h1>SGF</h1>
+
+            <nav>
+                <a href="/html/index.html" class="ativo">Início</a>
+                <a href="#movimentacoes">Movimentações</a>
+                <a href="#nova-movimentacao">Adicionar movimentação</a>
+            </nav>
+
+            <button id="btnSair" class="btn-sair">Sair</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="boas-vindas">
+            <div>
+                <h2>Olá, seja bem-vindo!</h2>
+                <p>Acompanhe suas finanças em um só lugar.</p>
+            </div>
+            <span id="dataAtual"></span>
+        </section>
+
+        <section class="resumo">
+            <div class="card">
+                <p>Saldo atual</p>
+                <h3 id="saldo">R$ 0,00</h3>
+            </div>
+
+            <div class="card">
+                <p>Receitas</p>
+                <h3 id="receitas">R$ 0,00</h3>
+            </div>
+
+            <div class="card">
+                <p>Despesas</p>
+                <h3 id="despesas">R$ 0,00</h3>
+            </div>
+        </section>
+
+        <section class="conteudo">
+            <div class="painel" id="nova-movimentacao">
+                <h2>Nova movimentação</h2>
+
+                <form id="formMovimentacao">
+                    <label for="descricao">Descrição</label>
+                    <input type="text" id="descricao" placeholder="Ex.: Compra no mercado" required>
+
+                    <label for="valor">Valor (R$)</label>
+                    <input type="number" id="valor" min="0.01" step="0.01" placeholder="0,00" required>
+
+                    <label for="tipo">Tipo</label>
+                    <select id="tipo" required>
+                        <option value="receita">Receita</option>
+                        <option value="despesa">Despesa</option>
+                    </select>
+
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria" required>
+                        <option value="Salário">Salário</option>
+                        <option value="Alimentação">Alimentação</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Moradia">Moradia</option>
+                        <option value="Lazer">Lazer</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+
+                    <button type="submit" class="btn-principal">Adicionar</button>
+                    <p id="mensagem"></p>
+                </form>
+            </div>
+
+            <div class="painel" id="movimentacoes">
+                <div class="titulo-lista">
+                    <h2>Movimentações recentes</h2>
+                    <button id="btnLimpar" class="btn-secundario" type="button">
+                        Limpar lista
+                    </button>
+                </div>
+
+                <div class="filtros">
+                    <input type="search" id="pesquisa" placeholder="Pesquisar movimentação">
+
+                    <select id="filtroTipo">
+                        <option value="todos">Todas</option>
+                        <option value="receita">Receitas</option>
+                        <option value="despesa">Despesas</option>
+                    </select>
+                </div>
+
+                <div id="listaMovimentacoes" class="lista-movimentacoes">
+                    <p class="vazio">Nenhuma movimentação cadastrada.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>SGF - Sistema de Gerenciamento Financeiro</p>
+    </footer>
+</body>
+</html>
