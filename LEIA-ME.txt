@@ -1,0 +1,35 @@
+# Implementação de Orçamentos - SGF
+
+## Arquivos
+- `routes/orcamentos.js`: CRUD da API.
+- `templates/html/orcamentos.html`: página.
+- `templates/scripts/orcamentos.js`: integração com a API.
+- `templates/css/orcamentos.css`: estilos da página.
+- `prisma/schema.prisma`: schema atualizado com o modelo Orcamentos e relações.
+- `app.js`: registro da rota `/orcamentos`.
+
+## Como aplicar
+1. Faça backup do `dev.db` antes de alterar o schema.
+2. Copie `routes/orcamentos.js` para a pasta `routes` do projeto.
+3. Copie `templates/html/orcamentos.html` para `templates/html`.
+4. Copie `templates/scripts/orcamentos.js` para `templates/scripts`.
+5. Copie `templates/css/orcamentos.css` para `templates/css`.
+6. Substitua o `app.js` pelo arquivo deste pacote (ou aplique apenas os dois acréscimos indicados abaixo).
+7. Atualize seu `prisma/schema.prisma` com o conteúdo fornecido.
+8. Execute a migração conforme a configuração Prisma já existente no projeto:
+   `npx prisma migrate dev --name adicionar_orcamentos`
+9. Gere o client se sua configuração não fizer isso automaticamente:
+   `npx prisma generate`
+10. Reinicie o servidor.
+
+## Integração no app.js
+Adicione:
+`const orcamentosRoutes = require('./routes/orcamentos')`
+e:
+`app.use('/orcamentos', orcamentosRoutes)`
+
+## Banco de dados
+O arquivo `lib/prisma.js` não foi alterado. O código mantém a configuração de conexão existente (`file:./dev.db`). Não copie nem crie um banco novo. Antes da migração, confirme que o processo é executado com a raiz do projeto como diretório de trabalho e faça backup do banco raiz `dev.db`.
+
+## Regra de funcionamento
+Cada orçamento pertence a uma categoria de despesa e a um mês/ano. O gasto é calculado somando movimentações do tipo `despesa` ligadas àquela categoria dentro do mês escolhido. Uma categoria pode ter apenas um orçamento por mês/ano para cada usuário.

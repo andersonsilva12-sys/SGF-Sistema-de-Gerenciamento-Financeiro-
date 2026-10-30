@@ -15,6 +15,7 @@ model Usuarios {
 
   movimentacoes  Movimentacoes[]
   categorias     Categorias[]
+  orcamentos     Orcamentos[]
 }
 
 model Categorias {
@@ -27,6 +28,7 @@ model Categorias {
   usuario        Usuarios        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   movimentacoes  Movimentacoes[]
+  orcamentos      Orcamentos[]
 
   @@unique([nome, tipo, usuarioId])
   @@index([usuarioId])
@@ -47,6 +49,25 @@ model Movimentacoes {
   categoriaId    Int?
   categoriaRef   Categorias?     @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
 
+  @@index([usuarioId])
+  @@index([categoriaId])
+}
+
+
+model Orcamentos {
+  id          Int        @id @default(autoincrement())
+  limite      Float
+  mes         Int
+  ano         Int
+  criado_em   DateTime   @default(now())
+
+  usuarioId   Int
+  usuario     Usuarios   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  categoriaId Int
+  categoria   Categorias @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+
+  @@unique([categoriaId, mes, ano, usuarioId])
   @@index([usuarioId])
   @@index([categoriaId])
 }

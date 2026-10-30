@@ -7,6 +7,7 @@ const session = require('express-session')
 const usuariosRoutes = require('./routes/usuarios')
 const movimentacoesRoutes = require('./routes/movimentacoes')
 const categoriasRoutes = require('./routes/categorias')
+const orcamentosRoutes = require('./routes/orcamentos')
 
 const port = 3000
 
@@ -38,6 +39,7 @@ app.use('/auth', require('./routes/auth'))
 app.use('/usuarios', usuariosRoutes)
 app.use('/movimentacoes', movimentacoesRoutes)
 app.use('/categorias', categoriasRoutes)
+app.use('/orcamentos', orcamentosRoutes)
 
 
 app.get('/', (req, res) => {
