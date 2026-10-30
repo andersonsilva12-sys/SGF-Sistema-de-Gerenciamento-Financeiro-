@@ -1,112 +1,125 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGF - Página principal</title>
+    <title>SGF - Início</title>
     <link rel="stylesheet" href="/css/style.css">
     <script src="/scripts/main.js" defer></script>
 </head>
 <body>
-    <header>
-        <div class="container cabecalho">
-            <h1>SGF</h1>
-
-            <nav>
-                <a href="/html/index.html" class="ativo">Início</a>
-                <a href="#movimentacoes">Movimentações</a>
-                <a href="#nova-movimentacao">Adicionar movimentação</a>
-            </nav>
-
-            <button id="btnSair" class="btn-sair">Sair</button>
+    <aside class="menu">
+        <div class="logo">
+            <span class="logo-icon">S</span>
+            <h2>SGF</h2>
         </div>
-    </header>
 
-    <main class="container">
+        <p class="menu-titulo">MENU PRINCIPAL</p>
+
+        <nav>
+            <a href="/html/index.html" class="ativo">
+                <span>⌂</span> Início
+            </a>
+            <a href="/html/movimentacoes.html">
+                <span>↔</span> Movimentações
+            </a>
+            <a href="/html/categorias.html">
+                <span>▦</span> Categorias
+            </a>
+            <a href="/html/orcamentos.html">
+                <span>▤</span> Orçamentos
+            </a>
+            <a href="/html/metas.html">
+                <span>◎</span> Metas financeiras
+            </a>
+        </nav>
+
+        <div class="menu-rodape">
+            <a href="/html/login.html" id="btnSair">Sair da conta</a>
+        </div>
+    </aside>
+
+    <main class="conteudo">
+        <header class="topo">
+            <div>
+                <p class="subtitulo">PAINEL FINANCEIRO</p>
+                <h1>Visão geral</h1>
+            </div>
+
+            <span id="dataAtual" class="data"></span>
+        </header>
+
         <section class="boas-vindas">
             <div>
-                <h2>Olá, seja bem-vindo!</h2>
-                <p>Acompanhe suas finanças em um só lugar.</p>
+                <p class="saudacao">Bem-vindo ao SGF!</p>
+                <h2>Organize suas finanças com mais tranquilidade.</h2>
+                <p>Acompanhe sua vida financeira em um só lugar.</p>
             </div>
-            <span id="dataAtual"></span>
+            <div class="ilustracao">R$</div>
         </section>
 
         <section class="resumo">
             <div class="card">
-                <p>Saldo atual</p>
+                <p>Saldo disponível</p>
                 <h3 id="saldo">R$ 0,00</h3>
+                <span>Seu saldo financeiro</span>
             </div>
 
             <div class="card">
-                <p>Receitas</p>
+                <p>Receitas do mês</p>
                 <h3 id="receitas">R$ 0,00</h3>
+                <span>Valores recebidos</span>
             </div>
 
             <div class="card">
-                <p>Despesas</p>
+                <p>Despesas do mês</p>
                 <h3 id="despesas">R$ 0,00</h3>
+                <span>Valores gastos</span>
             </div>
         </section>
 
-        <section class="conteudo">
-            <div class="painel" id="nova-movimentacao">
-                <h2>Nova movimentação</h2>
-
-                <form id="formMovimentacao">
-                    <label for="descricao">Descrição</label>
-                    <input type="text" id="descricao" placeholder="Ex.: Compra no mercado" required>
-
-                    <label for="valor">Valor (R$)</label>
-                    <input type="number" id="valor" min="0.01" step="0.01" placeholder="0,00" required>
-
-                    <label for="tipo">Tipo</label>
-                    <select id="tipo" required>
-                        <option value="receita">Receita</option>
-                        <option value="despesa">Despesa</option>
-                    </select>
-
-                    <label for="categoria">Categoria</label>
-                    <select id="categoria" required>
-                        <option value="Salário">Salário</option>
-                        <option value="Alimentação">Alimentação</option>
-                        <option value="Transporte">Transporte</option>
-                        <option value="Moradia">Moradia</option>
-                        <option value="Lazer">Lazer</option>
-                        <option value="Outros">Outros</option>
-                    </select>
-
-                    <button type="submit" class="btn-principal">Adicionar</button>
-                    <p id="mensagem"></p>
-                </form>
+        <section class="secao">
+            <div class="secao-topo">
+                <div>
+                    <h2>Acesse suas funcionalidades</h2>
+                    <p>Escolha o que deseja consultar ou organizar.</p>
+                </div>
             </div>
 
-            <div class="painel" id="movimentacoes">
-                <div class="titulo-lista">
-                    <h2>Movimentações recentes</h2>
-                    <button id="btnLimpar" class="btn-secundario" type="button">
-                        Limpar lista
-                    </button>
-                </div>
+            <div class="atalhos">
+                <a href="/html/movimentacoes.html" class="atalho">
+                    <span class="icone azul">↔</span>
+                    <h3>Movimentações</h3>
+                    <p>Consulte suas receitas e despesas.</p>
+                    <span class="link">Acessar →</span>
+                </a>
 
-                <div class="filtros">
-                    <input type="search" id="pesquisa" placeholder="Pesquisar movimentação">
+                <a href="/html/categorias.html" class="atalho">
+                    <span class="icone verde">▦</span>
+                    <h3>Categorias</h3>
+                    <p>Organize seus gastos por categoria.</p>
+                    <span class="link">Acessar →</span>
+                </a>
 
-                    <select id="filtroTipo">
-                        <option value="todos">Todas</option>
-                        <option value="receita">Receitas</option>
-                        <option value="despesa">Despesas</option>
-                    </select>
-                </div>
+                <a href="/html/orcamentos.html" class="atalho">
+                    <span class="icone amarelo">▤</span>
+                    <h3>Orçamentos</h3>
+                    <p>Planeje quanto deseja gastar.</p>
+                    <span class="link">Acessar →</span>
+                </a>
 
-                <div id="listaMovimentacoes" class="lista-movimentacoes">
-                    <p class="vazio">Nenhuma movimentação cadastrada.</p>
-                </div>
+                <a href="/html/metas.html" class="atalho">
+                    <span class="icone roxo">◎</span>
+                    <h3>Metas financeiras</h3>
+                    <p>Acompanhe seus objetivos financeiros.</p>
+                    <span class="link">Acessar →</span>
+                </a>
             </div>
         </section>
+
+        <footer>
+            SGF — Sistema de Gerenciamento Financeiro
+        </footer>
     </main>
-
-    <footer>
-        <p>SGF - Sistema de Gerenciamento Financeiro</p>
-    </footer>
 </body>
 </html>

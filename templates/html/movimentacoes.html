@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SGF - Movimentações</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/movimentacoes.css">
+
+    <script src="/scripts/movimentacoes.js" defer></script>
+</head>
+<body>
+    <aside class="menu">
+        <div class="logo">
+            <span class="logo-icon">S</span>
+            <h2>SGF</h2>
+        </div>
+
+        <p class="menu-titulo">MENU PRINCIPAL</p>
+
+        <nav>
+            <a href="/html/index.html">
+                <span>⌂</span> Início
+            </a>
+
+            <a href="/html/movimentacoes.html" class="ativo">
+                <span>↔</span> Movimentações
+            </a>
+
+            <a href="/html/categorias.html">
+                <span>▦</span> Categorias
+            </a>
+
+            <a href="/html/orcamentos.html">
+                <span>▤</span> Orçamentos
+            </a>
+
+            <a href="/html/metas.html">
+                <span>◎</span> Metas financeiras
+            </a>
+        </nav>
+
+        <div class="menu-rodape">
+            <a href="#" id="btnSair">Sair da conta</a>
+        </div>
+    </aside>
+
+    <main class="conteudo">
+        <header class="topo">
+            <div>
+                <p class="subtitulo">FINANÇAS PESSOAIS</p>
+                <h1>Movimentações</h1>
+            </div>
+        </header>
+
+        <section class="resumos">
+            <article class="cartao-resumo">
+                <span>Receitas listadas</span>
+                <strong id="totalReceitas">R$ 0,00</strong>
+            </article>
+
+            <article class="cartao-resumo">
+                <span>Despesas listadas</span>
+                <strong id="totalDespesas">R$ 0,00</strong>
+            </article>
+
+            <article class="cartao-resumo">
+                <span>Saldo das movimentações</span>
+                <strong id="saldoMovimentacoes">R$ 0,00</strong>
+            </article>
+        </section>
+
+        <section class="painel">
+            <div class="titulo-painel">
+                <div>
+                    <h2 id="tituloFormulario">Nova movimentação</h2>
+                    <p>Preencha os dados abaixo para registrar uma movimentação.</p>
+                </div>
+            </div>
+
+            <form id="formMovimentacao">
+                <input type="hidden" id="movimentacaoId">
+
+                <div class="campos">
+                    <label class="campo campo-descricao">
+                        Descrição
+                        <input
+                            type="text"
+                            id="descricao"
+                            maxlength="150"
+                            placeholder="Ex.: Salário ou conta de energia"
+                            required
+                        >
+                    </label>
+
+                    <label class="campo">
+                        Valor (R$)
+                        <input
+                            type="number"
+                            id="valor"
+                            min="0.01"
+                            step="0.01"
+                            placeholder="0,00"
+                            required
+                        >
+                    </label>
+
+                    <label class="campo">
+                        Tipo
+                        <select id="tipo" required>
+                            <option value="receita">Receita</option>
+                            <option value="despesa">Despesa</option>
+                        </select>
+                    </label>
+
+                    <label class="campo">
+                        Categoria
+                        <select id="categoria" required>
+                            <option value="">
+                                Selecione uma categoria
+                            </option>
+                        </select>
+                    </label>
+
+                    <label class="campo">
+                        Data
+                        <input type="date" id="data" required>
+                    </label>
+                </div>
+
+                <div class="acoes-formulario">
+                    <button
+                        class="botao botao-principal"
+                        id="btnSalvar"
+                        type="submit"
+                    >
+                        Salvar movimentação
+                    </button>
+
+                    <button
+                        class="botao botao-secundario"
+                        id="btnCancelar"
+                        type="button"
+                        hidden
+                    >
+                        Cancelar edição
+                    </button>
+                </div>
+
+                <p
+                    id="mensagem"
+                    class="mensagem"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+            </form>
+        </section>
+
+        <section class="painel">
+            <div class="titulo-painel titulo-lista">
+                <div>
+                    <h2>Histórico</h2>
+                    <p>Movimentações registradas na sua conta.</p>
+                </div>
+
+                <span id="quantidadeRegistros" class="contador">
+                    0 registros
+                </span>
+            </div>
+
+            <div class="filtros">
+                <label class="campo campo-pesquisa">
+                    Pesquisar
+                    <input
+                        type="search"
+                        id="pesquisa"
+                        placeholder="Buscar por descrição ou categoria"
+                    >
+                </label>
+
+                <label class="campo campo-filtro">
+                    Tipo
+                    <select id="filtroTipo">
+                        <option value="todos">Todos</option>
+                        <option value="receita">Receitas</option>
+                        <option value="despesa">Despesas</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="listaMovimentacoes">
+                        <tr>
+                            <td colspan="6" class="estado-vazio">
+                                Carregando movimentações...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            SGF — Sistema de Gerenciamento Financeiro
+        </footer>
+    </main>
+</body>
+</html>

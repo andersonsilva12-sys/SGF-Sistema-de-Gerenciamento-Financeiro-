@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGF - Categorias</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/categorias.css">
+    <script src="/scripts/categorias.js" defer></script>
+</head>
+<body>
+
+    <aside class="menu">
+        <div class="logo">
+            <span class="logo-icon">S</span>
+            <h2>SGF</h2>
+        </div>
+
+        <p class="menu-titulo">MENU PRINCIPAL</p>
+
+        <nav>
+            <a href="/html/index.html">
+                <span>⌂</span> Início
+            </a>
+
+            <a href="/html/movimentacoes.html">
+                <span>↔</span> Movimentações
+            </a>
+
+            <a href="/html/categorias.html" class="ativo">
+                <span>▦</span> Categorias
+            </a>
+
+            <a href="/html/orcamentos.html">
+                <span>▤</span> Orçamentos
+            </a>
+
+            <a href="/html/metas.html">
+                <span>◎</span> Metas financeiras
+            </a>
+        </nav>
+
+        <div class="menu-rodape">
+            <a href="#" id="btnSair">Sair da conta</a>
+        </div>
+    </aside>
+
+    <main class="conteudo">
+
+        <header class="topo">
+            <div>
+                <p class="subtitulo">ORGANIZAÇÃO FINANCEIRA</p>
+                <h1>Categorias</h1>
+            </div>
+
+            <span id="dataAtual" class="data"></span>
+        </header>
+
+        <section class="introducao">
+            <div>
+                <h2>Organize suas movimentações</h2>
+                <p>
+                    Cadastre categorias para classificar suas receitas e despesas.
+                </p>
+            </div>
+
+            <div class="introducao-icone">▦</div>
+        </section>
+
+        <section class="resumos">
+            <article class="cartao-resumo">
+                <span>Total de categorias</span>
+                <strong id="totalCategorias">0</strong>
+            </article>
+
+            <article class="cartao-resumo">
+                <span>Categorias de receita</span>
+                <strong id="totalReceitas">0</strong>
+            </article>
+
+            <article class="cartao-resumo">
+                <span>Categorias de despesa</span>
+                <strong id="totalDespesas">0</strong>
+            </article>
+        </section>
+
+        <section class="painel">
+            <div class="titulo-painel">
+                <div>
+                    <h2 id="tituloFormulario">Nova categoria</h2>
+                    <p>Informe o nome e o tipo da categoria.</p>
+                </div>
+            </div>
+
+            <form id="formCategoria">
+                <input type="hidden" id="categoriaId">
+
+                <div class="campos">
+                    <label class="campo campo-nome">
+                        Nome da categoria
+                        <input
+                            type="text"
+                            id="nome"
+                            maxlength="100"
+                            placeholder="Ex.: Salário, Alimentação, Transporte"
+                            required
+                        >
+                    </label>
+
+                    <label class="campo">
+                        Tipo
+                        <select id="tipo" required>
+                            <option value="receita">Receita</option>
+                            <option value="despesa">Despesa</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="acoes-formulario">
+                    <button
+                        class="botao botao-principal"
+                        id="btnSalvar"
+                        type="submit"
+                    >
+                        Salvar categoria
+                    </button>
+
+                    <button
+                        class="botao botao-secundario"
+                        id="btnCancelar"
+                        type="button"
+                        hidden
+                    >
+                        Cancelar edição
+                    </button>
+                </div>
+
+                <p id="mensagem" class="mensagem" role="status" aria-live="polite"></p>
+            </form>
+        </section>
+
+        <section class="painel">
+            <div class="titulo-painel titulo-lista">
+                <div>
+                    <h2>Categorias cadastradas</h2>
+                    <p>Gerencie as categorias vinculadas à sua conta.</p>
+                </div>
+
+                <span id="quantidadeRegistros" class="contador">
+                    0 categorias
+                </span>
+            </div>
+
+            <div class="filtros">
+                <label class="campo campo-pesquisa">
+                    Pesquisar
+                    <input
+                        type="search"
+                        id="pesquisa"
+                        placeholder="Buscar pelo nome"
+                    >
+                </label>
+
+                <label class="campo">
+                    Tipo
+                    <select id="filtroTipo">
+                        <option value="todos">Todos os tipos</option>
+                        <option value="receita">Receitas</option>
+                        <option value="despesa">Despesas</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Categoria</th>
+                            <th>Tipo</th>
+                            <th>Data de criação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="listaCategorias">
+                        <tr>
+                            <td colspan="4" class="estado-vazio">
+                                Carregando categorias...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            SGF — Sistema de Gerenciamento Financeiro
+        </footer>
+
+    </main>
+
+</body>
+</html>

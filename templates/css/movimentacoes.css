@@ -1,0 +1,383 @@
+
+/* ========================================
+   RESUMOS FINANCEIROS
+======================================== */
+
+.resumos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.cartao-resumo {
+    min-width: 0;
+    padding: 23px;
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    transition: border-color 0.2s;
+}
+
+.cartao-resumo:hover {
+    border-color: #C5D5E2;
+}
+
+.cartao-resumo span {
+    display: block;
+    margin-bottom: 13px;
+    color: var(--texto-suave);
+    font-size: 13px;
+}
+
+.cartao-resumo strong {
+    display: block;
+    color: var(--azul);
+    font-size: 23px;
+    overflow-wrap: anywhere;
+}
+
+#totalReceitas {
+    color: #238653;
+}
+
+#totalDespesas {
+    color: #C16B52;
+}
+
+/* ========================================
+   PAINÉIS
+======================================== */
+
+.painel {
+    min-width: 0;
+    margin-bottom: 25px;
+    padding: 25px;
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+}
+
+.titulo-painel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.titulo-painel h2 {
+    margin-bottom: 7px;
+    color: var(--azul);
+    font-size: 19px;
+}
+
+.titulo-painel p {
+    color: var(--texto-suave);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.contador {
+    color: var(--texto-suave);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* ========================================
+   FORMULÁRIO
+======================================== */
+
+.campos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    color: var(--texto);
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.campo-descricao {
+    grid-column: 1 / -1;
+}
+
+.campo input,
+.campo select {
+    width: 100%;
+    min-width: 0;
+    padding: 12px 13px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    outline: none;
+    background: var(--superficie);
+    color: var(--texto);
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: normal;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.campo input::placeholder {
+    color: #9AA5B1;
+}
+
+.campo input:focus,
+.campo select:focus {
+    border-color: var(--destaque);
+    box-shadow: 0 0 0 3px rgba(54, 133, 150, 0.12);
+}
+
+.acoes-formulario {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+/* ========================================
+   BOTÕES DO FORMULÁRIO
+======================================== */
+
+.botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 11px 17px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.botao-principal {
+    background: var(--azul);
+    color: #FFFFFF;
+}
+
+.botao-principal:hover {
+    background: #1B2F43;
+}
+
+.botao-secundario {
+    border-color: var(--borda);
+    background: var(--superficie);
+    color: var(--texto);
+}
+
+.botao-secundario:hover {
+    background: var(--fundo);
+    border-color: #C5D0DC;
+}
+
+.botao:focus-visible {
+    outline: 2px solid var(--destaque);
+    outline-offset: 3px;
+}
+
+.botao[hidden] {
+    display: none;
+}
+
+/* ========================================
+   MENSAGENS
+======================================== */
+
+.mensagem {
+    margin-top: 12px;
+    color: var(--texto-suave);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.mensagem:empty {
+    display: none;
+}
+
+/* ========================================
+   PESQUISA E FILTROS
+======================================== */
+
+.filtros {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr);
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+/* ========================================
+   TABELA
+======================================== */
+
+.tabela-container {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--borda);
+    border-radius: 9px;
+}
+
+.tabela-container table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--superficie);
+    text-align: left;
+    font-size: 13px;
+}
+
+.tabela-container thead {
+    background: var(--fundo);
+}
+
+.tabela-container th {
+    padding: 15px 18px;
+    border-bottom: 1px solid var(--borda);
+    color: var(--texto-suave);
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+.tabela-container td {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--borda);
+    color: var(--texto);
+    vertical-align: middle;
+}
+
+.tabela-container tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.tabela-container tbody tr {
+    transition: background 0.15s;
+}
+
+.tabela-container tbody tr:hover {
+    background: #F8FAFC;
+}
+
+.tabela-container td.estado-vazio {
+    padding: 30px 15px;
+    color: var(--texto-suave);
+    text-align: center;
+    white-space: normal;
+}
+
+/* ========================================
+   BOTÕES EDITAR E EXCLUIR
+======================================== */
+
+/* Estiliza botões dentro das células de ações,
+   mesmo que o JavaScript use classes diferentes. */
+
+.tabela-container td:last-child {
+    min-width: 155px;
+    white-space: nowrap;
+}
+
+.tabela-container td:last-child button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2px 5px 2px 0;
+    padding: 8px 12px;
+    border: 1px solid var(--borda);
+    border-radius: 6px;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.tabela-container td:last-child button:first-of-type {
+    border-color: #D5E3F5;
+    background: #EAF1FA;
+    color: #386A9B;
+}
+
+.tabela-container td:last-child button:first-of-type:hover {
+    border-color: #B8D0EE;
+    background: #DCE9F8;
+}
+
+.tabela-container td:last-child button:last-of-type {
+    border-color: #F3D1CE;
+    background: #FFF1F0;
+    color: #C24141;
+}
+
+.tabela-container td:last-child button:last-of-type:hover {
+    border-color: #EAB8B3;
+    background: #FCE1DF;
+}
+
+.tabela-container td:last-child button:focus-visible {
+    outline: 2px solid var(--destaque);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+======================================== */
+
+@media (max-width: 1000px) {
+    .resumos {
+        grid-template-columns: 1fr;
+    }
+
+    .cartao-resumo {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 650px) {
+    .painel {
+        padding: 18px;
+    }
+
+    .campos,
+    .filtros {
+        grid-template-columns: 1fr;
+    }
+
+    .campo-descricao {
+        grid-column: auto;
+    }
+
+    .titulo-painel {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .acoes-formulario {
+        flex-direction: column;
+    }
+
+    .acoes-formulario .botao {
+        width: 100%;
+    }
+
+    .cartao-resumo strong {
+        font-size: 21px;
+    }
+
+    .tabela-container td,
+    .tabela-container th {
+        padding: 12px;
+    }
+}
