@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGF - Metas</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/metas.css">
+    <script src="/scripts/metas.js" defer></script>
+</head>
+<body>
+
+    <aside class="menu">
+        <div class="logo">
+            <div class="logo-icon">S</div>
+            <h2>SGF</h2>
+        </div>
+
+        <p class="menu-titulo">MENU PRINCIPAL</p>
+
+        <nav>
+            <a href="/html/index.html">Início</a>
+            <a href="/html/movimentacoes.html">Movimentações</a>
+            <a href="/html/categorias.html">Categorias</a>
+            <a href="/html/orcamentos.html">Orçamentos</a>
+            <a href="/html/metas.html" class="ativo">Metas</a>
+        </nav>
+
+        <div class="menu-rodape">
+            <button id="btnSair" type="button">Sair da conta</button>
+        </div>
+    </aside>
+
+    <main class="conteudo">
+        <header class="topo">
+            <div>
+                <h1>Metas financeiras</h1>
+                <p class="subtitulo">Acompanhe seus objetivos financeiros.</p>
+            </div>
+        </header>
+
+        <section class="resumo-metas">
+            <div class="resumo-card">
+                <span>Total de metas</span>
+                <strong id="totalMetas">0</strong>
+            </div>
+
+            <div class="resumo-card">
+                <span>Metas de economia</span>
+                <strong id="totalEconomia">0</strong>
+            </div>
+
+            <div class="resumo-card">
+                <span>Metas de despesas</span>
+                <strong id="totalDespesas">0</strong>
+            </div>
+        </section>
+
+        <section class="area-formulario">
+            <h2 id="tituloFormulario">Cadastrar nova meta</h2>
+
+            <form id="formMeta">
+                <input type="hidden" id="metaId">
+
+                <div class="campos">
+                    <div class="campo campo-titulo">
+                        <label for="titulo">Nome da meta</label>
+                        <input
+                            type="text"
+                            id="titulo"
+                            maxlength="100"
+                            placeholder="Ex.: Economizar para uma viagem"
+                            required
+                        >
+                    </div>
+
+                    <div class="campo">
+                        <label for="tipo">Tipo de meta</label>
+                        <select id="tipo" required>
+                            <option value="">Selecione</option>
+                            <option value="economia">Economia</option>
+                            <option value="despesa">Limite de despesas</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label for="valorAlvo">Valor desejado (R$)</label>
+                        <input
+                            type="number"
+                            id="valorAlvo"
+                            min="0.01"
+                            step="0.01"
+                            placeholder="0,00"
+                            required
+                        >
+                    </div>
+
+                    <div class="campo">
+                        <label for="dataInicio">Data inicial</label>
+                        <input type="date" id="dataInicio" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="dataFim">Data final</label>
+                        <input type="date" id="dataFim" required>
+                    </div>
+                </div>
+
+                <div class="acoes-formulario">
+                    <button type="submit" id="btnSalvar">Cadastrar meta</button>
+                    <button type="button" id="btnCancelar" hidden>Cancelar edição</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="area-listagem">
+            <div class="titulo-listagem">
+                <div>
+                    <h2>Minhas metas</h2>
+                    <p>Acompanhe o andamento dos seus objetivos.</p>
+                </div>
+            </div>
+
+            <div id="listaMetas" class="lista-metas">
+                <p class="mensagem-vazia">Carregando metas...</p>
+            </div>
+        </section>
+
+        <p id="mensagem" class="mensagem"></p>
+    </main>
+
+</body>
+</html>

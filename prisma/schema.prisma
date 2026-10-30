@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -16,6 +17,7 @@ model Usuarios {
   movimentacoes  Movimentacoes[]
   categorias     Categorias[]
   orcamentos     Orcamentos[]
+  metas          Metas[]
 }
 
 model Categorias {
@@ -28,7 +30,7 @@ model Categorias {
   usuario        Usuarios        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   movimentacoes  Movimentacoes[]
-  orcamentos      Orcamentos[]
+  orcamentos     Orcamentos[]
 
   @@unique([nome, tipo, usuarioId])
   @@index([usuarioId])
@@ -53,7 +55,6 @@ model Movimentacoes {
   @@index([categoriaId])
 }
 
-
 model Orcamentos {
   id          Int        @id @default(autoincrement())
   limite      Float
@@ -70,4 +71,19 @@ model Orcamentos {
   @@unique([categoriaId, mes, ano, usuarioId])
   @@index([usuarioId])
   @@index([categoriaId])
+}
+
+model Metas {
+  id          Int       @id @default(autoincrement())
+  titulo      String
+  tipo        String
+  valorAlvo   Float
+  dataInicio  DateTime
+  dataFim     DateTime
+  criadaEm    DateTime  @default(now())
+
+  usuarioId   Int
+  usuario     Usuarios  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
 }
