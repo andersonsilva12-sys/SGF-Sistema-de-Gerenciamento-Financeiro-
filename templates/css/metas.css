@@ -299,3 +299,17 @@
     }
 }
     
+.menu-rodape button {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--texto-suave);
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.menu-rodape button:hover {
+    color: #C24141;
+}

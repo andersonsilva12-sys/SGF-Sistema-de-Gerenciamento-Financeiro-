@@ -1,4 +1,3 @@
-
 const express = require('express')
 const prisma = require('../lib/prisma')
 
@@ -20,6 +19,16 @@ function validarDados(body) {
     const nome = typeof body.nome === 'string' ? body.nome.trim() : ''
     const tipo = typeof body.tipo === 'string' ? body.tipo.trim().toLowerCase() : ''
 
+    let caixaId = null
+
+    if (body.caixaId !== undefined && body.caixaId !== null && body.caixaId !== '') {
+        caixaId = Number(body.caixaId)
+
+        if (!Number.isSafeInteger(caixaId) || caixaId <= 0) {
+            return { erro: 'Selecione uma caixa válida.' }
+        }
+    }
+
     if (!nome || nome.length > 100) {
         return {
             erro: 'Informe um nome de até 100 caracteres.'
@@ -32,13 +41,31 @@ function validarDados(body) {
         }
     }
 
-    return { nome, tipo }
+    if (tipo === 'receita' && caixaId !== null) {
+        return {
+            erro: 'Categorias de receita não podem ser vinculadas a caixas de despesas.'
+        }
+    }
+
+    return { nome, tipo, caixaId }
 }
 
 function validarId(valor) {
     const id = Number(valor)
 
     return Number.isInteger(id) && id > 0 ? id : null
+}
+
+async function buscarCaixa(caixaId, usuarioId) {
+    if (caixaId === null) return true
+
+    return prisma.caixas.findFirst({
+        where: {
+            id: caixaId,
+            usuarioId,
+            tipo: 'despesa'
+        }
+    })
 }
 
 router.use(autenticar)
@@ -52,11 +79,13 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ mensagem: dados.erro })
         }
 
+        const usuarioId = req.session.usuarioId
+
         const existente = await prisma.categorias.findFirst({
             where: {
                 nome: dados.nome,
                 tipo: dados.tipo,
-                usuarioId: req.session.usuarioId
+                usuarioId
             }
         })
 
@@ -66,11 +95,23 @@ router.post('/', async (req, res) => {
             })
         }
 
+        const caixa = await buscarCaixa(dados.caixaId, usuarioId)
+
+        if (!caixa) {
+            return res.status(400).json({
+                mensagem: 'Selecione uma caixa de despesas pertencente à sua conta.'
+            })
+        }
+
         const categoria = await prisma.categorias.create({
             data: {
                 nome: dados.nome,
                 tipo: dados.tipo,
-                usuarioId: req.session.usuarioId
+                caixaId: dados.caixaId,
+                usuarioId
+            },
+            include: {
+                caixa: true
             }
         })
 
@@ -89,6 +130,9 @@ router.get('/', async (req, res) => {
         const categorias = await prisma.categorias.findMany({
             where: {
                 usuarioId: req.session.usuarioId
+            },
+            include: {
+                caixa: true
             },
             orderBy: {
                 nome: 'asc'
@@ -119,6 +163,9 @@ router.get('/:id', async (req, res) => {
             where: {
                 id,
                 usuarioId: req.session.usuarioId
+            },
+            include: {
+                caixa: true
             }
         })
 
@@ -154,10 +201,12 @@ router.put('/:id', async (req, res) => {
             return res.status(400).json({ mensagem: dados.erro })
         }
 
+        const usuarioId = req.session.usuarioId
+
         const categoria = await prisma.categorias.findFirst({
             where: {
                 id,
-                usuarioId: req.session.usuarioId
+                usuarioId
             }
         })
 
@@ -171,7 +220,7 @@ router.put('/:id', async (req, res) => {
             where: {
                 nome: dados.nome,
                 tipo: dados.tipo,
-                usuarioId: req.session.usuarioId,
+                usuarioId,
                 NOT: { id }
             }
         })
@@ -182,11 +231,23 @@ router.put('/:id', async (req, res) => {
             })
         }
 
+        const caixa = await buscarCaixa(dados.caixaId, usuarioId)
+
+        if (!caixa) {
+            return res.status(400).json({
+                mensagem: 'Selecione uma caixa de despesas pertencente à sua conta.'
+            })
+        }
+
         const atualizada = await prisma.categorias.update({
             where: { id },
             data: {
                 nome: dados.nome,
-                tipo: dados.tipo
+                tipo: dados.tipo,
+                caixaId: dados.caixaId
+            },
+            include: {
+                caixa: true
             }
         })
 
@@ -202,7 +263,14 @@ router.put('/:id', async (req, res) => {
 // Excluir categoria
 router.delete('/:id', async (req, res) => {
     try {
-        const id = Number(req.params.id)
+        const id = validarId(req.params.id)
+
+        if (!id) {
+            return res.status(400).json({
+                mensagem: 'ID inválido.'
+            })
+        }
+
         const usuarioId = req.session.usuarioId
 
         const categoria = await prisma.categorias.findFirst({
@@ -228,7 +296,7 @@ router.delete('/:id', async (req, res) => {
 
         if (erro.code === 'P2003') {
             return res.status(409).json({
-                mensagem: 'Não é possível excluir uma categoria que possui movimentações vinculadas.'
+                mensagem: 'Não é possível excluir uma categoria que possui movimentações ou orçamentos vinculados.'
             })
         }
 

@@ -1,4 +1,4 @@
-
+const movimentacoesCaixasRoutes = require('./routes/movimentacoesCaixas')
 const express = require('express')
 const app = express()
 const path = require('path')
@@ -9,6 +9,8 @@ const movimentacoesRoutes = require('./routes/movimentacoes')
 const categoriasRoutes = require('./routes/categorias')
 const orcamentosRoutes = require('./routes/orcamentos')
 const metasRoutes = require('./routes/metas')
+const caixasRoutes = require('./routes/caixas')
+
 
 const port = 3000
 
@@ -42,6 +44,8 @@ app.use('/movimentacoes', movimentacoesRoutes)
 app.use('/categorias', categoriasRoutes)
 app.use('/orcamentos', orcamentosRoutes)
 app.use('/metas', metasRoutes)
+app.use('/caixas', caixasRoutes)
+app.use('/caixas', movimentacoesCaixasRoutes)
 
 
 app.get('/', (req, res) => {

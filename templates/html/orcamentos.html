@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,8 +11,13 @@
 </head>
 <body>
     <aside class="menu">
-        <div class="logo"><span class="logo-icon">S</span><h2>SGF</h2></div>
+        <div class="logo">
+            <span class="logo-icon">S</span>
+            <h2>SGF</h2>
+        </div>
+
         <p class="menu-titulo">MENU PRINCIPAL</p>
+
         <nav>
             <a href="/html/index.html"><span>⌂</span> Início</a>
             <a href="/html/movimentacoes.html"><span>↔</span> Movimentações</a>
@@ -19,95 +25,250 @@
             <a href="/html/orcamentos.html" class="ativo"><span>▤</span> Orçamentos</a>
             <a href="/html/metas.html"><span>◎</span> Metas financeiras</a>
         </nav>
-        <div class="menu-rodape"><a href="#" id="btnSair">Sair da conta</a></div>
+
+        <div class="menu-rodape">
+            <a href="#" id="btnSair">Sair da conta</a>
+        </div>
     </aside>
 
     <main class="conteudo">
         <header class="topo">
-            <div><p class="subtitulo">ORGANIZAÇÃO FINANCEIRA</p><h1>Orçamentos</h1></div>
+            <div>
+                <p class="subtitulo">ORGANIZAÇÃO FINANCEIRA</p>
+                <h1>Orçamentos</h1>
+            </div>
             <span id="dataAtual" class="data"></span>
         </header>
 
         <section class="introducao">
             <div>
-                <h2>Controle seus limites de gastos</h2>
-                <p>Defina quanto pretende gastar em cada categoria por mês e acompanhe sua evolução.</p>
+                <h2>Controle seus gastos e reservas</h2>
+                <p>Organize seu dinheiro em caixas e acompanhe como está utilizando seus recursos.</p>
             </div>
-            <div class="introducao-icone">▤</div>
+            <button class="botao botao-principal" type="button"
+                onclick="document.getElementById('secaoNovaCaixa').scrollIntoView({behavior:'smooth'})">
+                + Nova caixa
+            </button>
         </section>
 
         <section class="resumos">
-            <article class="cartao-resumo"><span>Total de orçamentos</span><strong id="totalOrcamentos">0</strong></article>
-            <article class="cartao-resumo"><span>Limite total</span><strong id="limiteTotal">R$ 0,00</strong></article>
-            <article class="cartao-resumo"><span>Total utilizado</span><strong id="gastoTotal">R$ 0,00</strong></article>
+            <article class="cartao-resumo">
+                <span>Caixas cadastradas</span>
+                <strong id="totalCaixas">0</strong>
+            </article>
+
+            <article class="cartao-resumo">
+                <span>Limite mensal de despesas</span>
+                <strong id="limiteTotal">R$ 0,00</strong>
+            </article>
+
+            <article class="cartao-resumo">
+                <span>Total guardado em reservas</span>
+                <strong id="saldoTotal">R$ 0,00</strong>
+            </article>
         </section>
 
-        <section class="painel">
-            <div class="titulo-painel">
-                <div>
-                    <h2 id="tituloFormulario">Novo orçamento</h2>
-                    <p>Escolha uma categoria de despesa e defina o limite mensal.</p>
-                </div>
-            </div>
-
-            <form id="formOrcamento">
-                <input type="hidden" id="orcamentoId">
-                <div class="campos">
-                    <label class="campo campo-categoria">Categoria
-                        <select id="categoriaId" required>
-                            <option value="">Carregando categorias...</option>
-                        </select>
-                    </label>
-                    <label class="campo">Limite mensal (R$)
-                        <input type="number" id="limite" min="0.01" step="0.01" placeholder="Ex.: 500,00" required>
-                    </label>
-                    <label class="campo">Mês
-                        <select id="mes" required>
-                            <option value="1">Janeiro</option><option value="2">Fevereiro</option>
-                            <option value="3">Março</option><option value="4">Abril</option>
-                            <option value="5">Maio</option><option value="6">Junho</option>
-                            <option value="7">Julho</option><option value="8">Agosto</option>
-                            <option value="9">Setembro</option><option value="10">Outubro</option>
-                            <option value="11">Novembro</option><option value="12">Dezembro</option>
-                        </select>
-                    </label>
-                    <label class="campo">Ano
-                        <input type="number" id="ano" min="2000" max="2100" required>
-                    </label>
-                </div>
-                <div class="acoes-formulario">
-                    <button class="botao botao-principal" id="btnSalvar" type="submit">Salvar orçamento</button>
-                    <button class="botao botao-secundario" id="btnCancelar" type="button" hidden>Cancelar edição</button>
-                </div>
-                <p id="mensagem" class="mensagem" role="status" aria-live="polite"></p>
-            </form>
-        </section>
-
-        <section class="painel">
+        <section class="painel" id="painelCaixas">
             <div class="titulo-painel titulo-lista">
-                <div><h2>Orçamentos cadastrados</h2><p>Acompanhe os limites e os gastos de cada categoria.</p></div>
-                <span id="quantidadeRegistros" class="contador">0 orçamentos</span>
+                <div>
+                    <h2>Minhas caixas</h2>
+                    <p>Acompanhe seus limites de gastos e suas reservas financeiras.</p>
+                </div>
+                <span id="quantidadeRegistros" class="contador">0 caixas</span>
             </div>
+
             <div class="filtros">
-                <label class="campo campo-pesquisa">Pesquisar categoria
-                    <input type="search" id="pesquisa" placeholder="Buscar categoria">
+                <label class="campo campo-pesquisa">
+                    Pesquisar
+                    <input type="search" id="pesquisa" placeholder="Buscar caixa pelo nome">
                 </label>
-                <label class="campo">Período
-                    <select id="filtroAnoMes"><option value="todos">Todos os períodos</option></select>
+
+                <label class="campo">
+                    Tipo de caixa
+                    <select id="filtroTipo">
+                        <option value="todos">Todos os tipos</option>
+                        <option value="despesa">Despesas</option>
+                        <option value="reserva">Reservas</option>
+                    </select>
                 </label>
             </div>
+
+            <div id="listaCaixas" class="lista-caixas">
+                <p class="estado-vazio">Carregando caixas...</p>
+            </div>
+        </section>
+
+        <section class="painel painel-acoes" id="secaoNovaCaixa">
+            <details class="secao-recolhivel" open>
+                <summary>
+                    <div>
+                        <h2 id="tituloFormulario">Nova caixa</h2>
+                        <p>Cadastre uma caixa de despesas ou uma reserva financeira.</p>
+                    </div>
+                    <span class="seta">⌄</span>
+                </summary>
+
+                <form id="formCaixa">
+                    <input type="hidden" id="caixaId">
+
+                    <div class="campos">
+                        <label class="campo">
+                            Nome da caixa
+                            <input type="text" id="nomeCaixa" maxlength="100"
+                                placeholder="Ex.: Despesas fixas" required>
+                        </label>
+
+                        <label class="campo">
+                            Tipo de caixa
+                            <select id="tipoCaixa" required>
+                                <option value="despesa">Despesas</option>
+                                <option value="reserva">Reserva financeira</option>
+                            </select>
+                        </label>
+
+                        <label class="campo" id="campoLimite">
+                            Limite mensal (R$)
+                            <input type="number" id="limiteMensal" min="0.01"
+                                step="0.01" placeholder="Ex.: 1000,00">
+                        </label>
+                    </div>
+
+                    <div class="acoes-formulario">
+                        <button class="botao botao-principal" id="btnSalvar" type="submit">
+                            Criar caixa
+                        </button>
+                        <button class="botao botao-secundario" id="btnCancelar"
+                            type="button" hidden>
+                            Cancelar edição
+                        </button>
+                    </div>
+
+                    <p id="mensagem" class="mensagem" role="status" aria-live="polite"></p>
+                </form>
+            </details>
+        </section>
+
+        <section class="painel painel-acoes">
+            <details class="secao-recolhivel">
+                <summary>
+                    <div>
+                        <h2>Vincular categorias</h2>
+                        <p>Associe categorias de despesas às suas caixas.</p>
+                    </div>
+                    <span class="seta">⌄</span>
+                </summary>
+
+                <form id="formVinculo">
+                    <div class="campos campos-vinculo">
+                        <label class="campo">
+                            Categoria
+                            <select id="categoriaVinculo" required>
+                                <option value="">Selecione uma categoria</option>
+                            </select>
+                        </label>
+
+                        <label class="campo">
+                            Caixa de despesas
+                            <select id="caixaVinculo" required>
+                                <option value="">Selecione uma caixa</option>
+                            </select>
+                        </label>
+
+                        <div class="campo campo-botao">
+                            <span>&nbsp;</span>
+                            <button class="botao botao-principal" type="submit">
+                                Vincular categoria
+                            </button>
+                        </div>
+                    </div>
+                    <p id="mensagemVinculo" class="mensagem" role="status" aria-live="polite"></p>
+                </form>
+            </details>
+        </section>
+
+        <section class="painel painel-acoes">
+            <details class="secao-recolhivel">
+                <summary>
+                    <div>
+                        <h2>Movimentar reserva</h2>
+                        <p>Registre depósitos e retiradas das suas reservas.</p>
+                    </div>
+                    <span class="seta">⌄</span>
+                </summary>
+
+                <form id="formMovimentacao">
+                    <div class="campos campos-movimentacao">
+                        <label class="campo">
+                            Caixa de reserva
+                            <select id="caixaMovimentacao" required>
+                                <option value="">Selecione uma reserva</option>
+                            </select>
+                        </label>
+
+                        <label class="campo">
+                            Operação
+                            <select id="tipoMovimentacao" required>
+                                <option value="deposito">Depósito</option>
+                                <option value="retirada">Retirada</option>
+                            </select>
+                        </label>
+
+                        <label class="campo">
+                            Valor (R$)
+                            <input type="number" id="valorMovimentacao" min="0.01"
+                                step="0.01" placeholder="Ex.: 200,00" required>
+                        </label>
+
+                        <label class="campo">
+                            Descrição
+                            <input type="text" id="descricaoMovimentacao" maxlength="150"
+                                placeholder="Ex.: Economia do mês">
+                        </label>
+                    </div>
+
+                    <div class="acoes-formulario">
+                        <button class="botao botao-principal" id="btnMovimentar" type="submit">
+                            Registrar movimentação
+                        </button>
+                    </div>
+
+                    <p id="mensagemMovimentacao" class="mensagem"
+                        role="status" aria-live="polite"></p>
+                </form>
+            </details>
+        </section>
+
+        <section class="painel" id="painelHistorico" hidden>
+            <div class="titulo-painel titulo-lista">
+                <div>
+                    <h2 id="tituloHistorico">Histórico da reserva</h2>
+                    <p>Depósitos e retiradas registrados nesta caixa.</p>
+                </div>
+                <button type="button" id="btnFecharHistorico"
+                    class="botao botao-secundario">Fechar</button>
+            </div>
+
             <div class="tabela-container">
                 <table>
-                    <thead><tr>
-                        <th>Categoria</th><th>Período</th><th>Limite</th>
-                        <th>Gasto</th><th>Restante</th><th>Utilização</th><th>Ações</th>
-                    </tr></thead>
-                    <tbody id="listaOrcamentos">
-                        <tr><td colspan="7" class="estado-vazio">Carregando orçamentos...</td></tr>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Operação</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaHistorico">
+                        <tr>
+                            <td colspan="4" class="estado-vazio">
+                                Nenhuma movimentação encontrada.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </section>
+
         <footer>SGF — Sistema de Gerenciamento Financeiro</footer>
     </main>
 </body>

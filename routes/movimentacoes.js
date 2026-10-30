@@ -67,6 +67,9 @@ async function buscarCategoria(categoriaId, tipo, usuarioId) {
             id: Number(categoriaId),
             tipo,
             usuarioId
+        },
+        include: {
+            caixa: true
         }
     })
 }
@@ -92,7 +95,15 @@ const incluirCategoria = {
         select: {
             id: true,
             nome: true,
-            tipo: true
+            tipo: true,
+            caixa: {
+                select: {
+                    id: true,
+                    nome: true,
+                    tipo: true,
+                    limiteMensal: true
+                }
+            }
         }
     }
 }
@@ -110,10 +121,12 @@ router.post('/', async (req, res) => {
             })
         }
 
+        const usuarioId = req.session.usuarioId
+
         const categoria = await buscarCategoria(
             req.body.categoriaId,
             req.body.tipo,
-            req.session.usuarioId
+            usuarioId
         )
 
         if (!categoria) {
@@ -125,7 +138,7 @@ router.post('/', async (req, res) => {
         const movimentacao = await prisma.movimentacoes.create({
             data: {
                 ...prepararDados(req.body, categoria),
-                usuarioId: req.session.usuarioId
+                usuarioId
             },
             include: incluirCategoria
         })
@@ -213,10 +226,12 @@ router.put('/:id', async (req, res) => {
             })
         }
 
+        const usuarioId = req.session.usuarioId
+
         const categoria = await buscarCategoria(
             req.body.categoriaId,
             req.body.tipo,
-            req.session.usuarioId
+            usuarioId
         )
 
         if (!categoria) {
@@ -228,7 +243,7 @@ router.put('/:id', async (req, res) => {
         const resultado = await prisma.movimentacoes.updateMany({
             where: {
                 id: Number(req.params.id),
-                usuarioId: req.session.usuarioId
+                usuarioId
             },
             data: prepararDados(req.body, categoria)
         })
@@ -242,7 +257,7 @@ router.put('/:id', async (req, res) => {
         const movimentacao = await prisma.movimentacoes.findFirst({
             where: {
                 id: Number(req.params.id),
-                usuarioId: req.session.usuarioId
+                usuarioId
             },
             include: incluirCategoria
         })
