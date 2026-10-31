@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -45,11 +44,12 @@
                 <h2>Controle seus gastos e reservas</h2>
                 <p>Organize seu dinheiro em caixas e acompanhe como está utilizando seus recursos.</p>
             </div>
-            <button class="botao botao-principal" type="button"
-                onclick="document.getElementById('secaoNovaCaixa').scrollIntoView({behavior:'smooth'})">
+            <button class="botao botao-principal" id="btnNovaCaixa" type="button">
                 + Nova caixa
             </button>
         </section>
+
+        <p id="mensagemGlobal" class="mensagem mensagem-global" role="status" aria-live="polite"></p>
 
         <section class="resumos">
             <article class="cartao-resumo">
@@ -98,15 +98,15 @@
             </div>
         </section>
 
-        <section class="painel painel-acoes" id="secaoNovaCaixa">
-            <details class="secao-recolhivel" open>
-                <summary>
+        <dialog id="modalCaixa" class="modal modal-caixa" aria-labelledby="tituloFormulario">
+            <div class="modal-conteudo">
+                <div class="modal-cabecalho">
                     <div>
                         <h2 id="tituloFormulario">Nova caixa</h2>
-                        <p>Cadastre uma caixa de despesas ou uma reserva financeira.</p>
+                        <p id="descricaoFormulario">Cadastre uma caixa de despesas ou uma reserva financeira.</p>
                     </div>
-                    <span class="seta">⌄</span>
-                </summary>
+                    <button type="button" class="botao-fechar" data-fechar="modalCaixa" aria-label="Fechar janela">&times;</button>
+                </div>
 
                 <form id="formCaixa">
                     <input type="hidden" id="caixaId">
@@ -134,67 +134,53 @@
                     </div>
 
                     <div class="acoes-formulario">
-                        <button class="botao botao-principal" id="btnSalvar" type="submit">
-                            Criar caixa
-                        </button>
-                        <button class="botao botao-secundario" id="btnCancelar"
-                            type="button" hidden>
-                            Cancelar edição
-                        </button>
+                        <button class="botao botao-principal" id="btnSalvar" type="submit">Criar caixa</button>
+                        <button class="botao botao-secundario" id="btnCancelar" type="button">Cancelar</button>
                     </div>
 
                     <p id="mensagem" class="mensagem" role="status" aria-live="polite"></p>
                 </form>
-            </details>
-        </section>
+            </div>
+        </dialog>
 
-        <section class="painel painel-acoes">
-            <details class="secao-recolhivel">
-                <summary>
+        <dialog id="modalVinculo" class="modal modal-vinculo" aria-labelledby="tituloVinculo">
+            <div class="modal-conteudo">
+                <div class="modal-cabecalho">
                     <div>
-                        <h2>Vincular categorias</h2>
-                        <p>Associe categorias de despesas às suas caixas.</p>
+                        <h2 id="tituloVinculo">Cadastrar Despesas</h2>
+                        <p id="descricaoVinculo">Associe uma categoria de despesa a esta caixa.</p>
                     </div>
-                    <span class="seta">⌄</span>
-                </summary>
+                    <button type="button" class="botao-fechar" data-fechar="modalVinculo" aria-label="Fechar janela">&times;</button>
+                </div>
 
                 <form id="formVinculo">
+                    <input type="hidden" id="caixaVinculo">
                     <div class="campos campos-vinculo">
                         <label class="campo">
-                            Categoria
+                            Categoria de despesa
                             <select id="categoriaVinculo" required>
                                 <option value="">Selecione uma categoria</option>
                             </select>
                         </label>
-
-                        <label class="campo">
-                            Caixa de despesas
-                            <select id="caixaVinculo" required>
-                                <option value="">Selecione uma caixa</option>
-                            </select>
-                        </label>
-
                         <div class="campo campo-botao">
                             <span>&nbsp;</span>
-                            <button class="botao botao-principal" type="submit">
-                                Vincular categoria
-                            </button>
+                            <button class="botao botao-principal" type="submit">Cadastrar despesa</button>
                         </div>
                     </div>
                     <p id="mensagemVinculo" class="mensagem" role="status" aria-live="polite"></p>
                 </form>
-            </details>
-        </section>
+            </div>
+        </dialog>
 
-        <section class="painel painel-acoes">
-            <details class="secao-recolhivel">
-                <summary>
+        <dialog id="modalMovimentacao" class="modal modal-movimentacao" aria-labelledby="tituloMovimentacao">
+            <div class="modal-conteudo">
+                <div class="modal-cabecalho">
                     <div>
-                        <h2>Movimentar reserva</h2>
-                        <p>Registre depósitos e retiradas das suas reservas.</p>
+                        <h2 id="tituloMovimentacao">Remanejar reserva</h2>
+                        <p id="descricaoModalMovimentacao">Registre um depósito ou uma retirada nesta reserva.</p>
                     </div>
-                    <span class="seta">⌄</span>
-                </summary>
+                    <button type="button" class="botao-fechar" data-fechar="modalMovimentacao" aria-label="Fechar janela">&times;</button>
+                </div>
 
                 <form id="formMovimentacao">
                     <div class="campos campos-movimentacao">
@@ -230,44 +216,50 @@
                         <button class="botao botao-principal" id="btnMovimentar" type="submit">
                             Registrar movimentação
                         </button>
+                        <button class="botao botao-secundario" id="btnCancelarMovimentacao" type="button">
+                            Cancelar
+                        </button>
                     </div>
 
-                    <p id="mensagemMovimentacao" class="mensagem"
-                        role="status" aria-live="polite"></p>
+                    <p id="mensagemMovimentacao" class="mensagem" role="status" aria-live="polite"></p>
                 </form>
-            </details>
-        </section>
+            </div>
+        </dialog>
 
-        <section class="painel" id="painelHistorico" hidden>
-            <div class="titulo-painel titulo-lista">
-                <div>
-                    <h2 id="tituloHistorico">Histórico da reserva</h2>
-                    <p>Depósitos e retiradas registrados nesta caixa.</p>
+        <dialog id="modalHistorico" class="modal modal-historico" aria-labelledby="tituloHistorico">
+            <div class="modal-conteudo">
+                <div class="modal-cabecalho">
+                    <div>
+                        <h2 id="tituloHistorico">Histórico da caixa</h2>
+                        <p id="subtituloHistorico">Movimentações registradas nesta caixa.</p>
+                    </div>
+                    <button type="button" class="botao-fechar" data-fechar="modalHistorico" aria-label="Fechar histórico">&times;</button>
                 </div>
-                <button type="button" id="btnFecharHistorico"
-                    class="botao botao-secundario">Fechar</button>
-            </div>
 
-            <div class="tabela-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Operação</th>
-                            <th>Descrição</th>
-                            <th>Valor</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaHistorico">
-                        <tr>
-                            <td colspan="4" class="estado-vazio">
-                                Nenhuma movimentação encontrada.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="historico-acoes">
+                    <p id="mensagemHistorico" class="mensagem" role="status" aria-live="polite"></p>
+                    <button type="button" id="btnBaixarPdf" class="botao botao-principal" disabled>Baixar histórico em PDF</button>
+                </div>
+
+                <div class="tabela-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Operação</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaHistorico">
+                            <tr>
+                                <td colspan="4" class="estado-vazio">Selecione uma caixa para consultar o histórico.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </section>
+        </dialog>
 
         <footer>SGF — Sistema de Gerenciamento Financeiro</footer>
     </main>

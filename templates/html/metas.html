@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="/css/metas.css">
     <script src="/scripts/metas.js" defer></script>
 </head>
+
 <body>
 
     <aside class="menu">
@@ -19,11 +21,25 @@
         <p class="menu-titulo">MENU PRINCIPAL</p>
 
         <nav>
-            <a href="/html/index.html">Início</a>
-            <a href="/html/movimentacoes.html">Movimentações</a>
-            <a href="/html/categorias.html">Categorias</a>
-            <a href="/html/orcamentos.html">Orçamentos</a>
-            <a href="/html/metas.html" class="ativo">Metas</a>
+            <a href="/html/index.html">
+                <span>⌂</span> Início
+            </a>
+
+            <a href="/html/movimentacoes.html">
+                <span>↔</span> Movimentações
+            </a>
+
+            <a href="/html/categorias.html">
+                <span>▦</span> Categorias
+            </a>
+
+            <a href="/html/orcamentos.html">
+                <span>▤</span> Orçamentos
+            </a>
+
+            <a href="/html/metas.html" class="ativo">
+                <span>◎</span> Metas financeiras
+            </a>
         </nav>
 
         <div class="menu-rodape">
@@ -34,9 +50,10 @@
     <main class="conteudo">
         <header class="topo">
             <div>
-                <h1>Metas financeiras</h1>
-                <p class="subtitulo">Acompanhe seus objetivos financeiros.</p>
+                <p class="subtitulo">METAS FINANCEIRAS</p>
+                <h1>METAS</h1>
             </div>
+            <span id="dataAtual" class="data"></span>
         </header>
 
         <section class="resumo-metas">
@@ -65,13 +82,8 @@
                 <div class="campos">
                     <div class="campo campo-titulo">
                         <label for="titulo">Nome da meta</label>
-                        <input
-                            type="text"
-                            id="titulo"
-                            maxlength="100"
-                            placeholder="Ex.: Economizar para uma viagem"
-                            required
-                        >
+                        <input type="text" id="titulo" maxlength="100" placeholder="Ex.: Economizar para uma viagem"
+                            required>
                     </div>
 
                     <div class="campo">
@@ -85,14 +97,7 @@
 
                     <div class="campo">
                         <label for="valorAlvo">Valor desejado (R$)</label>
-                        <input
-                            type="number"
-                            id="valorAlvo"
-                            min="0.01"
-                            step="0.01"
-                            placeholder="0,00"
-                            required
-                        >
+                        <input type="number" id="valorAlvo" min="0.01" step="0.01" placeholder="0,00" required>
                     </div>
 
                     <div class="campo">
@@ -130,4 +135,5 @@
     </main>
 
 </body>
+
 </html>

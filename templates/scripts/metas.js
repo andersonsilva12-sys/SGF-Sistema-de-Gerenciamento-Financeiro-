@@ -15,6 +15,13 @@ const btnSair = document.getElementById('btnSair')
 
 let metas = []
 
+document.getElementById("dataAtual").textContent =
+    new Date().toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+    });
+
 function mostrarMensagem(texto, classe) {
     mensagem.textContent = texto
     mensagem.className = `mensagem ${classe}`

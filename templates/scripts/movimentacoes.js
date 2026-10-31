@@ -18,6 +18,13 @@ const btnSair = document.getElementById('btnSair')
 let movimentacoes = []
 let categorias = []
 
+document.getElementById('dataAtual').textContent =
+    new Date().toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+    })
+
 function formatarMoeda(numero) {
     return Number(numero).toLocaleString('pt-BR', {
         style: 'currency',

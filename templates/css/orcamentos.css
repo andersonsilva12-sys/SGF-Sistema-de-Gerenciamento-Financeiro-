@@ -1,4 +1,3 @@
-
 .introducao {
     display: flex;
     align-items: center;
@@ -458,5 +457,250 @@ footer {
 
     .caixa-valor {
         font-size: 21px;
+    }
+}
+
+/* Modais de criação, edição, histórico e movimentação */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(860px, calc(100% - 32px));
+    max-width: 860px;
+    max-height: min(86vh, 760px);
+    padding: 0;
+    overflow: auto;
+    color: var(--texto);
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+}
+
+.modal::backdrop {
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(3px);
+}
+
+.modal-conteudo {
+    padding: 24px;
+}
+
+.modal-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 20px;
+    padding-bottom: 17px;
+    border-bottom: 1px solid var(--borda);
+}
+
+.modal-cabecalho h2 {
+    color: var(--azul);
+    font-size: 20px;
+    margin: 0 0 6px;
+}
+
+.modal-cabecalho p {
+    color: var(--texto-suave);
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.botao-fechar {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    color: var(--texto-suave);
+    background: #EEF2F6;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.botao-fechar:hover {
+    color: var(--texto);
+    background: #DDE5ED;
+}
+
+.modal form {
+    margin: 0;
+}
+
+.modal .campos {
+    grid-template-columns:
+        minmax(0, 2fr)
+        minmax(0, 1.3fr)
+        minmax(0, 1fr);
+}
+
+.mensagem-global:not(:empty) {
+    margin: -8px 0 18px;
+    padding: 11px 13px;
+    border-radius: 8px;
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+}
+
+.historico-acoes {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 0 0 14px;
+}
+
+.historico-acoes .mensagem {
+    margin: 0;
+}
+
+.modal-historico .tabela-container {
+    border: 1px solid var(--borda);
+    border-radius: 9px;
+}
+
+.modal-historico .tabela-container table {
+    min-width: 600px;
+}
+
+.modal-historico .tabela-container th {
+    background: #EEF3F8;
+    white-space: nowrap;
+}
+
+/* Modal para vincular categorias às despesas */
+
+.modal-vinculo {
+    width: min(620px, calc(100% - 32px));
+}
+
+/* Alinhamento e padronização dos botões das caixas */
+
+.caixa-acoes {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.botao-historico,
+.botao-editar,
+.botao-excluir,
+.botao-cadastrar-despesas,
+.botao-remanejar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 36px;
+    padding: 8px 11px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.botao-historico {
+    color: var(--azul);
+    background: transparent;
+}
+
+.botao-editar {
+    color: var(--destaque);
+    background: transparent;
+}
+
+.botao-excluir {
+    color: #C24141;
+    background: transparent;
+}
+
+.botao-historico:hover,
+.botao-editar:hover,
+.botao-excluir:hover {
+    background: rgba(100, 116, 139, 0.08);
+}
+
+/* Botões destacados à direita */
+
+.botao-cadastrar-despesas,
+.botao-remanejar {
+    margin-left: auto;
+    border-color: var(--azul);
+    background: var(--azul);
+    color: #fff;
+}
+
+.botao-cadastrar-despesas:hover,
+.botao-remanejar:hover {
+    filter: brightness(0.93);
+}
+
+/* Modal de movimentação da reserva */
+
+.modal-movimentacao {
+    width: min(760px, calc(100% - 32px));
+}
+
+.modal-movimentacao .campos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Ajustes para telas menores */
+
+@media (max-width: 700px) {
+    .modal-conteudo {
+        padding: 18px;
+    }
+
+    .modal .campos {
+        grid-template-columns: 1fr;
+    }
+
+    .historico-acoes {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .historico-acoes #btnBaixarPdf {
+        width: 100%;
+        white-space: normal;
+    }
+}
+
+@media (max-width: 560px) {
+    .caixa-acoes {
+        gap: 7px;
+    }
+
+    .botao-historico,
+    .botao-editar,
+    .botao-excluir,
+    .botao-cadastrar-despesas,
+    .botao-remanejar {
+        min-height: 36px;
+    }
+
+    .botao-cadastrar-despesas,
+    .botao-remanejar {
+        margin-left: 0;
+    }
+
+    .modal-movimentacao .campos {
+        grid-template-columns: 1fr;
     }
 }
