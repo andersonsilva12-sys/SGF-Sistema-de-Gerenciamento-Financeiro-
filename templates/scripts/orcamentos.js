@@ -1,3 +1,4 @@
+
 'use strict'
 
 const formCaixa = document.getElementById('formCaixa')
@@ -16,7 +17,6 @@ const campoCaixaVinculo = document.getElementById('caixaVinculo')
 const formMovimentacao = document.getElementById('formMovimentacao')
 const modalMovimentacao = document.getElementById('modalMovimentacao')
 const btnCancelarMovimentacao = document.getElementById('btnCancelarMovimentacao')
-const campoCaixaMovimentacao = document.getElementById('caixaMovimentacao')
 const campoTipoMovimentacao = document.getElementById('tipoMovimentacao')
 const campoValorMovimentacao = document.getElementById('valorMovimentacao')
 const campoDescricaoMovimentacao = document.getElementById('descricaoMovimentacao')
@@ -32,9 +32,9 @@ const subtituloHistorico = document.getElementById('subtituloHistorico')
 const btnBaixarPdf = document.getElementById('btnBaixarPdf')
 
 const mensagem = document.getElementById('mensagem')
-const mensagemGlobal = document.getElementById('mensagemGlobal')
 const mensagemVinculo = document.getElementById('mensagemVinculo')
 const mensagemMovimentacao = document.getElementById('mensagemMovimentacao')
+const notificacao = document.getElementById('notificacao')
 
 const btnSalvar = document.getElementById('btnSalvar')
 const btnCancelar = document.getElementById('btnCancelar')
@@ -42,13 +42,18 @@ const btnCancelar = document.getElementById('btnCancelar')
 let caixas = []
 let categorias = []
 let historicoAtual = null
+let caixaMovimentacaoId = null
+let temporizadorNotificacao
 
 const dataAtual = document.getElementById('dataAtual')
+
 dataAtual.textContent = new Date().toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',
     year: 'numeric'
 })
+
+// Funções auxiliares
 
 function escaparHTML(valor) {
     return String(valor ?? '').replace(/[&<>"']/g, caractere => ({
@@ -70,6 +75,17 @@ function moeda(valor) {
 function mostrarMensagem(elemento, texto, tipo = '') {
     elemento.textContent = texto
     elemento.className = `mensagem ${tipo}`.trim()
+}
+
+function mostrarNotificacao(texto, tipo = 'sucesso') {
+    notificacao.textContent = texto
+    notificacao.className = `notificacao ${tipo} visivel`
+
+    clearTimeout(temporizadorNotificacao)
+
+    temporizadorNotificacao = setTimeout(() => {
+        notificacao.classList.remove('visivel')
+    }, 3000)
 }
 
 async function requisicao(url, opcoes = {}) {
@@ -140,6 +156,8 @@ function atualizarCampoLimite() {
     campoLimite.required = ehDespesa
 }
 
+// Carregamento de categorias e caixas
+
 async function carregarCategorias() {
     categorias = normalizarLista(await requisicao('/categorias'))
 
@@ -161,12 +179,86 @@ async function carregarCategorias() {
     }
 }
 
+// Calcula os gastos de cada caixa a partir das movimentações
+
 async function carregarCaixas() {
-    caixas = normalizarLista(await requisicao('/caixas'))
+    const [dadosCaixas, dadosMovimentacoes] = await Promise.all([
+        requisicao('/caixas'),
+        requisicao('/movimentacoes')
+    ])
+
+    caixas = normalizarLista(dadosCaixas)
+
+    const movimentacoes = normalizarLista(dadosMovimentacoes)
+
+    calcularGastosDasCaixas(movimentacoes)
 
     atualizarResumo()
-    atualizarSeletores()
     renderizarCaixas()
+}
+
+function calcularGastosDasCaixas(movimentacoes) {
+    const agora = new Date()
+
+    const anoAtual = agora.getFullYear()
+    const mesAtual = agora.getMonth()
+
+    caixas = caixas.map(caixa => {
+        if (caixa.tipo !== 'despesa') {
+            return caixa
+        }
+
+        const categoriasCaixa = Array.isArray(caixa.categorias)
+            ? caixa.categorias
+            : []
+
+        const idsCategorias = new Set(
+            categoriasCaixa.map(categoria => Number(categoria.id))
+        )
+
+        const gasto = movimentacoes.reduce((total, movimentacao) => {
+            const categoriaId = Number(
+                movimentacao.categoriaId ??
+                movimentacao.categoriaRef?.id ??
+                movimentacao.categoria?.id
+            )
+
+            if (
+                movimentacao.tipo !== 'despesa' ||
+                !idsCategorias.has(categoriaId)
+            ) {
+                return total
+            }
+
+            if (!movimentacao.data) {
+                return total
+            }
+
+            const data = new Date(movimentacao.data)
+
+            if (
+                Number.isNaN(data.getTime()) ||
+                data.getUTCFullYear() !== anoAtual ||
+                data.getUTCMonth() !== mesAtual
+            ) {
+                return total
+            }
+
+            return total + Number(movimentacao.valor || 0)
+        }, 0)
+
+        const limite = Number(caixa.limiteMensal || 0)
+
+        return {
+            ...caixa,
+            gasto,
+            restante: limite - gasto,
+            percentual: limite > 0
+                ? Math.min((gasto / limite) * 100, 100)
+                : 0,
+            ultrapassou: gasto > limite
+        }
+    })
 }
 
 function atualizarResumo() {
@@ -188,17 +280,7 @@ function atualizarResumo() {
     document.getElementById('saldoTotal').textContent = moeda(saldoTotal)
 }
 
-function atualizarSeletores() {
-    const reservas = caixas.filter(caixa => caixa.tipo === 'reserva')
-
-    campoCaixaMovimentacao.innerHTML =
-        '<option value="">Selecione uma reserva</option>' +
-        reservas.map(caixa => `
-            <option value="${Number(caixa.id)}">
-                ${escaparHTML(caixa.nome)} - ${moeda(caixa.saldo)}
-            </option>
-        `).join('')
-}
+// Renderização das caixas
 
 function renderizarCaixas() {
     const pesquisa = document.getElementById('pesquisa').value.trim().toLowerCase()
@@ -319,26 +401,32 @@ function renderizarReserva(caixa) {
         </article>
     `
 }
+
+// Cadastro e edição de caixas
+
 function limparFormulario() {
     formCaixa.reset()
     campoId.value = ''
+
     document.getElementById('tituloFormulario').textContent = 'Nova caixa'
     document.getElementById('descricaoFormulario').textContent =
         'Cadastre uma caixa de despesas ou uma reserva financeira.'
+
     btnSalvar.textContent = 'Criar caixa'
+
     atualizarCampoLimite()
     mostrarMensagem(mensagem, '')
 }
 
 function abrirFormularioNovaCaixa() {
     limparFormulario()
-    mostrarMensagem(mensagemGlobal, '')
     abrirModal(modalCaixa)
     campoNome.focus()
 }
 
 function abrirFormularioEdicao(caixa) {
     limparFormulario()
+
     campoId.value = String(caixa.id)
     campoNome.value = caixa.nome || ''
     campoTipo.value = caixa.tipo || 'despesa'
@@ -347,9 +435,10 @@ function abrirFormularioEdicao(caixa) {
     document.getElementById('tituloFormulario').textContent = 'Editar caixa'
     document.getElementById('descricaoFormulario').textContent =
         `Altere os dados de “${caixa.nome}”. As alterações só serão salvas após confirmar.`
+
     btnSalvar.textContent = 'Salvar alterações'
+
     atualizarCampoLimite()
-    mostrarMensagem(mensagemGlobal, '')
     abrirModal(modalCaixa)
     campoNome.focus()
 }
@@ -362,6 +451,7 @@ formCaixa.addEventListener('submit', async evento => {
 
     const id = campoId.value
     const tipo = campoTipo.value
+
     const dados = {
         nome: campoNome.value.trim(),
         tipo,
@@ -374,7 +464,10 @@ formCaixa.addEventListener('submit', async evento => {
         return
     }
 
-    if (tipo === 'despesa' && (!Number.isFinite(dados.limiteMensal) || dados.limiteMensal <= 0)) {
+    if (
+        tipo === 'despesa' &&
+        (!Number.isFinite(dados.limiteMensal) || dados.limiteMensal <= 0)
+    ) {
         mostrarMensagem(mensagem, 'Informe um limite mensal válido.', 'erro')
         campoLimite.focus()
         return
@@ -390,13 +483,14 @@ formCaixa.addEventListener('submit', async evento => {
         })
 
         await carregarCaixas()
+
         const textoSucesso = id
             ? 'Caixa atualizada com sucesso.'
             : 'Caixa criada com sucesso.'
 
         limparFormulario()
         fecharModal(modalCaixa)
-        mostrarMensagem(mensagemGlobal, textoSucesso, 'sucesso')
+        mostrarNotificacao(textoSucesso)
     } catch (erro) {
         mostrarMensagem(mensagem, erro.message, 'erro')
     } finally {
@@ -409,10 +503,17 @@ btnCancelar.addEventListener('click', () => {
     fecharModal(modalCaixa)
 })
 
+modalCaixa.addEventListener('close', limparFormulario)
+
+// Fechamento dos modais
+
 document.querySelectorAll('[data-fechar]').forEach(botao => {
     botao.addEventListener('click', () => {
         const dialogo = document.getElementById(botao.dataset.fechar)
+
         if (dialogo === modalCaixa) limparFormulario()
+        if (dialogo === modalMovimentacao) limparFormularioMovimentacao()
+
         fecharModal(dialogo)
     })
 })
@@ -421,19 +522,24 @@ document.querySelectorAll('[data-fechar]').forEach(botao => {
     dialogo.addEventListener('click', evento => {
         if (evento.target === dialogo) {
             if (dialogo === modalCaixa) limparFormulario()
+            if (dialogo === modalMovimentacao) limparFormularioMovimentacao()
+
             fecharModal(dialogo)
         }
     })
 })
 
-modalCaixa.addEventListener('close', limparFormulario)
+// Vinculação de categorias
 
 formVinculo.addEventListener('submit', async evento => {
     evento.preventDefault()
 
     const categoriaId = Number(campoCategoriaVinculo.value)
     const caixaId = Number(campoCaixaVinculo.value)
-    const categoria = categorias.find(item => Number(item.id) === categoriaId)
+
+    const categoria = categorias.find(
+        item => Number(item.id) === categoriaId
+    )
 
     if (!categoria || !caixaId) {
         mostrarMensagem(mensagemVinculo, 'Selecione uma categoria e uma caixa.', 'erro')
@@ -453,11 +559,13 @@ formVinculo.addEventListener('submit', async evento => {
             })
         })
 
-        mostrarMensagem(mensagemVinculo, 'Categoria vinculada com sucesso.', 'sucesso')
         await carregarCategorias()
         await carregarCaixas()
+
         campoCategoriaVinculo.value = ''
         fecharModal(modalVinculo)
+
+        mostrarNotificacao('Categoria vinculada com sucesso.')
     } catch (erro) {
         mostrarMensagem(mensagemVinculo, erro.message, 'erro')
     } finally {
@@ -465,29 +573,43 @@ formVinculo.addEventListener('submit', async evento => {
     }
 })
 
-btnCancelarMovimentacao.addEventListener('click', () => {
+// Movimentação da reserva
+
+function limparFormularioMovimentacao() {
     formMovimentacao.reset()
+    caixaMovimentacaoId = null
     mostrarMensagem(mensagemMovimentacao, '')
+}
+
+btnCancelarMovimentacao.addEventListener('click', () => {
+    limparFormularioMovimentacao()
     fecharModal(modalMovimentacao)
 })
 
-modalMovimentacao.addEventListener('close', () => {
-    formMovimentacao.reset()
-    mostrarMensagem(mensagemMovimentacao, '')
-})
+modalMovimentacao.addEventListener('close', limparFormularioMovimentacao)
 
 formMovimentacao.addEventListener('submit', async evento => {
     evento.preventDefault()
 
-    const caixaId = Number(campoCaixaMovimentacao.value)
+    const caixaId = caixaMovimentacaoId
+
     const dados = {
         tipo: campoTipoMovimentacao.value,
         valor: Number(campoValorMovimentacao.value),
         descricao: campoDescricaoMovimentacao.value.trim()
     }
 
-    if (!caixaId || !Number.isFinite(dados.valor) || dados.valor <= 0) {
-        mostrarMensagem(mensagemMovimentacao, 'Informe uma reserva e um valor válido.', 'erro')
+    if (!caixaId) {
+        mostrarMensagem(
+            mensagemMovimentacao,
+            'Não foi possível identificar a reserva selecionada.',
+            'erro'
+        )
+        return
+    }
+
+    if (!Number.isFinite(dados.valor) || dados.valor <= 0) {
+        mostrarMensagem(mensagemMovimentacao, 'Informe um valor válido.', 'erro')
         return
     }
 
@@ -495,21 +617,20 @@ formMovimentacao.addEventListener('submit', async evento => {
     botao.disabled = true
 
     try {
-        await requisicao(`/caixas/${caixaId}/movimentacoes`, {
+        await requisicao(`/caixas/${encodeURIComponent(caixaId)}/movimentacoes`, {
             method: 'POST',
             body: JSON.stringify(dados)
         })
 
-        formMovimentacao.reset()
         await carregarCaixas()
+
+        limparFormularioMovimentacao()
         fecharModal(modalMovimentacao)
 
-        mostrarMensagem(
-            mensagemGlobal,
+        mostrarNotificacao(
             dados.tipo === 'deposito'
                 ? 'Depósito registrado com sucesso.'
-                : 'Retirada registrada com sucesso.',
-            'sucesso'
+                : 'Retirada registrada com sucesso.'
         )
     } catch (erro) {
         mostrarMensagem(mensagemMovimentacao, erro.message, 'erro')
@@ -518,12 +639,16 @@ formMovimentacao.addEventListener('submit', async evento => {
     }
 })
 
+// Ações dos cartões
+
 lista.addEventListener('click', async evento => {
     const botao = evento.target.closest('button[data-acao]')
+
     if (!botao) return
 
     const id = Number(botao.dataset.id)
     const caixa = caixas.find(item => Number(item.id) === id)
+
     if (!caixa) return
 
     if (botao.dataset.acao === 'editar') {
@@ -539,6 +664,7 @@ lista.addEventListener('click', async evento => {
         if (!confirm(confirmacao)) return
 
         botao.disabled = true
+
         try {
             await requisicao(`/caixas/${id}`, { method: 'DELETE' })
 
@@ -549,9 +675,10 @@ lista.addEventListener('click', async evento => {
 
             await carregarCategorias()
             await carregarCaixas()
-            mostrarMensagem(mensagemGlobal, 'Caixa excluída com sucesso.', 'sucesso')
+
+            mostrarNotificacao('Caixa excluída com sucesso.')
         } catch (erro) {
-            mostrarMensagem(mensagemGlobal, erro.message, 'erro')
+            mostrarNotificacao(erro.message, 'erro')
         } finally {
             botao.disabled = false
         }
@@ -565,14 +692,18 @@ lista.addEventListener('click', async evento => {
     }
 
     if (botao.dataset.acao === 'remanejar') {
+        if (caixa.tipo !== 'reserva') return
+
+        caixaMovimentacaoId = Number(caixa.id)
+
         formMovimentacao.reset()
-        campoCaixaMovimentacao.value = String(caixa.id)
 
         descricaoModalMovimentacao.textContent =
             `Registre um depósito ou uma retirada na reserva “${caixa.nome}”.`
 
         mostrarMensagem(mensagemMovimentacao, '')
         abrirModal(modalMovimentacao)
+
         return
     }
 
@@ -588,6 +719,8 @@ lista.addEventListener('click', async evento => {
     }
 })
 
+// Histórico
+
 function formatarData(valor) {
     if (!valor) return '—'
 
@@ -595,18 +728,32 @@ function formatarData(valor) {
     const dataISO = texto.match(/^(\d{4})-(\d{2})-(\d{2})/)
 
     const data = dataISO
-        ? new Date(Number(dataISO[1]), Number(dataISO[2]) - 1, Number(dataISO[3]), 12)
+        ? new Date(Date.UTC(
+            Number(dataISO[1]),
+            Number(dataISO[2]) - 1,
+            Number(dataISO[3]),
+            12
+        ))
         : new Date(valor)
 
     if (Number.isNaN(data.getTime())) return '—'
-    return data.toLocaleDateString('pt-BR')
+
+    return data.toLocaleDateString('pt-BR', {
+        timeZone: 'UTC'
+    })
 }
 
 function descreverOperacao(item, caixa) {
     const tipo = String(item.tipo || item.operacao || '').toLowerCase()
 
-    if (['deposito', 'depósito', 'deposit', 'entrada'].includes(tipo)) return 'Depósito'
-    if (['retirada', 'saque', 'withdrawal', 'withdraw'].includes(tipo)) return 'Retirada'
+    if (['deposito', 'depósito', 'deposit', 'entrada'].includes(tipo)) {
+        return 'Depósito'
+    }
+
+    if (['retirada', 'saque', 'withdrawal', 'withdraw'].includes(tipo)) {
+        return 'Retirada'
+    }
+
     if (['despesa', 'expense'].includes(tipo)) return 'Despesa'
     if (['receita', 'income'].includes(tipo)) return 'Receita'
     if (item.operacao) return String(item.operacao)
@@ -618,19 +765,25 @@ function formatarRegistroHistorico(item, caixa) {
     const operacao = descreverOperacao(item, caixa)
     const valorNumerico = Math.abs(Number(item.valor || 0))
     const operacaoNormalizada = operacao.toLocaleLowerCase('pt-BR')
+
     const negativo = ['retirada', 'despesa'].includes(operacaoNormalizada)
     const positivo = ['depósito', 'receita'].includes(operacaoNormalizada)
+
     const sinal = negativo ? '- ' : positivo ? '+ ' : ''
 
     return {
-        data: formatarData(
-            item.data || item.criado_em || item.createdAt || item.dataMovimentacao
-        ),
+        data: formatarData(item.data),
         operacao,
-        descricao: String(item.descricao || item.observacao || item.detalhes || 'Sem descrição'),
+        descricao: String(
+            item.descricao || item.observacao || item.detalhes || 'Sem descrição'
+        ),
         valorNumerico,
         valorFormatado: `${sinal}${moeda(valorNumerico)}`,
-        classeValor: negativo ? 'valor-negativo' : positivo ? 'valor-positivo' : ''
+        classeValor: negativo
+            ? 'valor-negativo'
+            : positivo
+                ? 'valor-positivo'
+                : ''
     }
 }
 
@@ -660,7 +813,6 @@ function renderizarTabelaHistorico(movimentacoes, caixa) {
     }).join('')
 }
 
-
 async function buscarMovimentacoesDespesa(caixa) {
     const categoriasDaCaixa = Array.isArray(caixa.categorias)
         ? caixa.categorias
@@ -677,8 +829,16 @@ async function buscarMovimentacoesDespesa(caixa) {
     )
 
     return todasMovimentacoes.filter(item => {
-        const categoriaId = Number(item.categoriaId ?? item.categoria?.id)
-        return idsCategorias.has(categoriaId)
+        const categoriaId = Number(
+            item.categoriaId ??
+            item.categoriaRef?.id ??
+            item.categoria?.id
+        )
+
+        return (
+            item.tipo === 'despesa' &&
+            idsCategorias.has(categoriaId)
+        )
     })
 }
 
@@ -697,6 +857,7 @@ async function carregarHistorico(caixa) {
 
     mostrarMensagem(mensagemHistorico, '')
     btnBaixarPdf.disabled = true
+
     abrirModal(modalHistorico)
 
     try {
@@ -713,18 +874,14 @@ async function carregarHistorico(caixa) {
         }
 
         movimentacoes.sort((a, b) => {
-            const dataA = new Date(
-                a.data || a.criado_em || a.createdAt || 0
-            ).getTime() || 0
-
-            const dataB = new Date(
-                b.data || b.criado_em || b.createdAt || 0
-            ).getTime() || 0
+            const dataA = a.data ? new Date(a.data).getTime() : 0
+            const dataB = b.data ? new Date(b.data).getTime() : 0
 
             return dataB - dataA
         })
 
         historicoAtual = { caixa, movimentacoes }
+
         renderizarTabelaHistorico(movimentacoes, caixa)
         btnBaixarPdf.disabled = false
 
@@ -768,42 +925,23 @@ async function carregarHistorico(caixa) {
     }
 }
 
+// Geração do PDF
+
 function textoPdf(texto) {
     const substituicoes = {
-        '€': String.fromCharCode(128),
-        '‚': String.fromCharCode(130),
-        'ƒ': String.fromCharCode(131),
-        '„': String.fromCharCode(132),
-        '…': String.fromCharCode(133),
-        '†': String.fromCharCode(134),
-        '‡': String.fromCharCode(135),
-        'ˆ': String.fromCharCode(136),
-        '‰': String.fromCharCode(137),
-        'Š': String.fromCharCode(138),
-        '‹': String.fromCharCode(139),
-        'Œ': String.fromCharCode(140),
-        'Ž': String.fromCharCode(142),
-        '‘': String.fromCharCode(145),
-        '’': String.fromCharCode(146),
-        '“': String.fromCharCode(147),
-        '”': String.fromCharCode(148),
-        '•': String.fromCharCode(149),
-        '–': String.fromCharCode(150),
-        '—': String.fromCharCode(151),
-        '˜': String.fromCharCode(152),
-        '™': String.fromCharCode(153),
-        'š': String.fromCharCode(154),
-        '›': String.fromCharCode(155),
-        'œ': String.fromCharCode(156),
-        'ž': String.fromCharCode(158),
-        'Ÿ': String.fromCharCode(159)
+        '€': 128, '‚': 130, 'ƒ': 131, '„': 132, '…': 133,
+        '†': 134, '‡': 135, 'ˆ': 136, '‰': 137, 'Š': 138,
+        '‹': 139, 'Œ': 140, 'Ž': 142, '‘': 145, '’': 146,
+        '“': 147, '”': 148, '•': 149, '–': 150, '—': 151,
+        '˜': 152, '™': 153, 'š': 154, '›': 155, 'œ': 156,
+        'ž': 158, 'Ÿ': 159
     }
 
     let resultado = ''
 
     for (const caractere of String(texto ?? '')) {
         if (substituicoes[caractere]) {
-            resultado += substituicoes[caractere]
+            resultado += String.fromCharCode(substituicoes[caractere])
         } else if (caractere.charCodeAt(0) <= 255) {
             resultado += caractere
         } else {
@@ -843,20 +981,13 @@ function quebrarTextoPdf(texto, limiteCaracteres) {
             if (linha) linhas.push(linha)
             linha = ''
 
-            for (
-                let inicio = 0;
-                inicio < palavra.length;
-                inicio += limiteCaracteres
-            ) {
-                const pedaço = palavra.slice(
-                    inicio,
-                    inicio + limiteCaracteres
-                )
+            for (let inicio = 0; inicio < palavra.length; inicio += limiteCaracteres) {
+                const pedaco = palavra.slice(inicio, inicio + limiteCaracteres)
 
-                if (pedaço.length === limiteCaracteres) {
-                    linhas.push(pedaço)
+                if (pedaco.length === limiteCaracteres) {
+                    linhas.push(pedaco)
                 } else {
-                    linha = pedaço
+                    linha = pedaco
                 }
             }
 
@@ -910,8 +1041,7 @@ function construirConteudoPaginaPdf(caixa, registros, numeroPagina, totalPaginas
     let conteudo = ''
 
     conteudo += comandoTextoPdf(
-        'Histórico de movimentações',
-        margem, 28, 17, alturaPagina
+        'Historico de movimentacoes', margem, 28, 17, alturaPagina
     )
 
     conteudo += comandoTextoPdf(
@@ -926,6 +1056,7 @@ function construirConteudoPaginaPdf(caixa, registros, numeroPagina, totalPaginas
 
     const topoTabela = 94
     const alturaCabecalho = 25
+
     const larguraTabela = largurasColunas.reduce(
         (soma, largura) => soma + largura,
         0
@@ -936,7 +1067,8 @@ function construirConteudoPaginaPdf(caixa, registros, numeroPagina, totalPaginas
     )
 
     conteudo += linhaPdf(
-        margem, topoTabela, margem + larguraTabela, topoTabela, alturaPagina
+        margem, topoTabela,
+        margem + larguraTabela, topoTabela, alturaPagina
     )
 
     conteudo += linhaPdf(
@@ -944,7 +1076,7 @@ function construirConteudoPaginaPdf(caixa, registros, numeroPagina, totalPaginas
         margem + larguraTabela, topoTabela + alturaCabecalho, alturaPagina
     )
 
-    const titulos = ['Data', 'Operação', 'Descrição', 'Valor']
+    const titulos = ['Data', 'Operacao', 'Descricao', 'Valor']
 
     titulos.forEach((titulo, i) => {
         conteudo += comandoTextoPdf(
@@ -1111,8 +1243,10 @@ function prepararRegistrosPdf(caixa, movimentacoes) {
 function gerarPdfHistorico(caixa, movimentacoes) {
     const registros = prepararRegistrosPdf(caixa, movimentacoes)
     const paginas = []
+
     let atual = []
     let alturaUsada = 119
+
     const limiteInferior = 548
 
     registros.forEach(registro => {
@@ -1165,7 +1299,10 @@ btnBaixarPdf.addEventListener('click', () => {
     if (!historicoAtual) return
 
     try {
-        gerarPdfHistorico(historicoAtual.caixa, historicoAtual.movimentacoes)
+        gerarPdfHistorico(
+            historicoAtual.caixa,
+            historicoAtual.movimentacoes
+        )
 
         mostrarMensagem(
             mensagemHistorico,
@@ -1181,6 +1318,8 @@ btnBaixarPdf.addEventListener('click', () => {
     }
 })
 
+// Pesquisa e filtros
+
 document.getElementById('pesquisa').addEventListener(
     'input',
     renderizarCaixas
@@ -1191,6 +1330,8 @@ document.getElementById('filtroTipo').addEventListener(
     renderizarCaixas
 )
 
+// Sair da conta
+
 document.getElementById('btnSair').addEventListener('click', async evento => {
     evento.preventDefault()
 
@@ -1198,9 +1339,11 @@ document.getElementById('btnSair').addEventListener('click', async evento => {
         await requisicao('/auth/logout', { method: 'POST' })
         window.location.href = '/html/login.html'
     } catch (erro) {
-        mostrarMensagem(mensagemGlobal, erro.message, 'erro')
+        mostrarNotificacao(erro.message, 'erro')
     }
 })
+
+// Inicialização
 
 async function iniciar() {
     atualizarCampoLimite()

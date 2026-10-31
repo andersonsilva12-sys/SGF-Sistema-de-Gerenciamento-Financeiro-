@@ -1,3 +1,4 @@
+
 .introducao {
     display: flex;
     align-items: center;
@@ -228,13 +229,17 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
+    align-items: stretch;
 }
 
 .caixa-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 350px;
+    padding: 18px;
     border: 1px solid var(--borda);
     border-radius: 8px;
-    padding: 18px;
-    min-width: 0;
     background: var(--superficie);
 }
 
@@ -315,33 +320,79 @@
     line-height: 1.6;
 }
 
+/* Botões das caixas */
+
 .caixa-acoes {
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 13px;
-    margin-top: 14px;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 18px;
 }
 
 .botao-editar,
 .botao-excluir,
-.botao-historico {
-    border: none;
-    background: transparent;
-    cursor: pointer;
+.botao-historico,
+.botao-cadastrar-despesas,
+.botao-remanejar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 36px;
+    padding: 8px 11px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
     font-size: 12px;
-    padding: 5px 0;
-}
-
-.botao-editar {
-    color: var(--destaque);
-}
-
-.botao-excluir {
-    color: #C24141;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    text-decoration: none;
 }
 
 .botao-historico {
     color: var(--azul);
+    background: transparent;
+}
+
+.botao-editar {
+    color: var(--destaque);
+    background: transparent;
+}
+
+.botao-excluir {
+    color: #C24141;
+    background: transparent;
+}
+
+.botao-historico:hover,
+.botao-editar:hover,
+.botao-excluir:hover {
+    background: rgba(100, 116, 139, 0.08);
+}
+
+.botao-cadastrar-despesas,
+.botao-remanejar {
+    margin-left: auto;
+    border-color: var(--azul);
+    background: var(--azul);
+    color: #fff;
+}
+
+.botao-cadastrar-despesas:hover,
+.botao-remanejar:hover {
+    filter: brightness(0.93);
+}
+
+.botao-editar:disabled,
+.botao-excluir:disabled,
+.botao-historico:disabled,
+.botao-cadastrar-despesas:disabled,
+.botao-remanejar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .estado-vazio {
@@ -401,66 +452,7 @@ footer {
     display: none !important;
 }
 
-/* Responsividade */
-
-@media (max-width: 1100px) {
-    .campos-movimentacao {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-@media (max-width: 900px) {
-    .resumos {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .lista-caixas {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .campos-vinculo {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .campo-botao {
-        grid-column: 1 / -1;
-    }
-}
-
-@media (max-width: 600px) {
-    .introducao {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .resumos,
-    .campos,
-    .campos-vinculo,
-    .campos-movimentacao,
-    .filtros,
-    .lista-caixas {
-        grid-template-columns: 1fr;
-    }
-
-    .painel {
-        padding: 16px;
-    }
-
-    .painel-acoes {
-        padding: 0 16px;
-    }
-
-    .titulo-lista {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .caixa-valor {
-        font-size: 21px;
-    }
-}
-
-/* Modais de criação, edição, histórico e movimentação */
+/* Modais */
 
 .modal {
     position: fixed;
@@ -577,80 +569,9 @@ footer {
     white-space: nowrap;
 }
 
-/* Modal para vincular categorias às despesas */
-
 .modal-vinculo {
     width: min(620px, calc(100% - 32px));
 }
-
-/* Alinhamento e padronização dos botões das caixas */
-
-.caixa-acoes {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 14px;
-}
-
-.botao-historico,
-.botao-editar,
-.botao-excluir,
-.botao-cadastrar-despesas,
-.botao-remanejar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    min-height: 36px;
-    padding: 8px 11px;
-    border: 1px solid var(--borda);
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.2;
-    white-space: nowrap;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.botao-historico {
-    color: var(--azul);
-    background: transparent;
-}
-
-.botao-editar {
-    color: var(--destaque);
-    background: transparent;
-}
-
-.botao-excluir {
-    color: #C24141;
-    background: transparent;
-}
-
-.botao-historico:hover,
-.botao-editar:hover,
-.botao-excluir:hover {
-    background: rgba(100, 116, 139, 0.08);
-}
-
-/* Botões destacados à direita */
-
-.botao-cadastrar-despesas,
-.botao-remanejar {
-    margin-left: auto;
-    border-color: var(--azul);
-    background: var(--azul);
-    color: #fff;
-}
-
-.botao-cadastrar-despesas:hover,
-.botao-remanejar:hover {
-    filter: brightness(0.93);
-}
-
-/* Modal de movimentação da reserva */
 
 .modal-movimentacao {
     width: min(760px, calc(100% - 32px));
@@ -660,7 +581,31 @@ footer {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-/* Ajustes para telas menores */
+/* Responsividade */
+
+@media (max-width: 1100px) {
+    .campos-movimentacao {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .resumos {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .lista-caixas {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .campos-vinculo {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .campo-botao {
+        grid-column: 1 / -1;
+    }
+}
 
 @media (max-width: 700px) {
     .modal-conteudo {
@@ -682,17 +627,40 @@ footer {
     }
 }
 
-@media (max-width: 560px) {
-    .caixa-acoes {
-        gap: 7px;
+@media (max-width: 600px) {
+    .introducao {
+        align-items: flex-start;
+        flex-direction: column;
     }
 
-    .botao-historico,
-    .botao-editar,
-    .botao-excluir,
-    .botao-cadastrar-despesas,
-    .botao-remanejar {
-        min-height: 36px;
+    .resumos,
+    .campos,
+    .campos-vinculo,
+    .campos-movimentacao,
+    .filtros,
+    .lista-caixas {
+        grid-template-columns: 1fr;
+    }
+
+    .painel {
+        padding: 16px;
+    }
+
+    .painel-acoes {
+        padding: 0 16px;
+    }
+
+    .titulo-lista {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .caixa-valor {
+        font-size: 21px;
+    }
+
+    .caixa-acoes {
+        gap: 7px;
     }
 
     .botao-cadastrar-despesas,
@@ -703,4 +671,26 @@ footer {
     .modal-movimentacao .campos {
         grid-template-columns: 1fr;
     }
+}
+
+.notificacao {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #238653;
+    color: white;
+    padding: 14px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: 0.3s;
+    z-index: 1000;
+}
+
+.notificacao.visivel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }

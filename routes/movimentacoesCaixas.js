@@ -1,3 +1,4 @@
+
 const express = require('express')
 const prisma = require('../lib/prisma')
 
@@ -19,6 +20,21 @@ function validarId(id) {
     return /^\d+$/.test(id) &&
         Number.isSafeInteger(Number(id)) &&
         Number(id) > 0
+}
+
+function prepararData(data) {
+    if (data) {
+        return new Date(`${data}T12:00:00.000Z`)
+    }
+
+    const agora = new Date()
+
+    return new Date(Date.UTC(
+        agora.getFullYear(),
+        agora.getMonth(),
+        agora.getDate(),
+        12
+    ))
 }
 
 function validarDados(dados) {
@@ -54,7 +70,7 @@ function validarDados(dados) {
             return 'Informe uma data válida.'
         }
 
-        const dataConvertida = new Date(`${data}T12:00:00.000Z`)
+        const dataConvertida = prepararData(data)
 
         if (
             Number.isNaN(dataConvertida.getTime()) ||
@@ -108,6 +124,8 @@ async function calcularSaldo(tx, caixaId, usuarioId) {
     )
 }
 
+router.use(autenticar)
+
 // Registrar depósito ou retirada
 router.post('/:caixaId/movimentacoes', async (req, res) => {
     try {
@@ -150,9 +168,7 @@ router.post('/:caixaId/movimentacoes', async (req, res) => {
                     tipo: req.body.tipo,
                     valor,
                     descricao: req.body.descricao?.trim() || null,
-                    data: req.body.data
-                        ? new Date(`${req.body.data}T12:00:00.000Z`)
-                        : new Date(),
+                    data: prepararData(req.body.data),
                     caixaId,
                     usuarioId
                 }
@@ -200,9 +216,10 @@ router.get('/:caixaId/movimentacoes', async (req, res) => {
                 caixaId,
                 usuarioId
             },
-            orderBy: {
-                data: 'desc'
-            }
+            orderBy: [
+                { data: 'desc' },
+                { id: 'desc' }
+            ]
         })
 
         return res.json(movimentacoes)

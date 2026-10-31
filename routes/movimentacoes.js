@@ -1,3 +1,4 @@
+
 const express = require('express')
 const prisma = require('../lib/prisma')
 
@@ -13,6 +14,21 @@ function autenticar(req, res, next) {
     }
 
     next()
+}
+
+function prepararData(data) {
+    if (data) {
+        return new Date(`${data}T12:00:00.000Z`)
+    }
+
+    const agora = new Date()
+
+    return new Date(Date.UTC(
+        agora.getFullYear(),
+        agora.getMonth(),
+        agora.getDate(),
+        12
+    ))
 }
 
 function validarDados(dados) {
@@ -42,7 +58,7 @@ function validarDados(dados) {
             return 'Informe uma data válida.'
         }
 
-        const dataConvertida = new Date(`${data}T12:00:00.000Z`)
+        const dataConvertida = prepararData(data)
 
         if (
             Number.isNaN(dataConvertida.getTime()) ||
@@ -75,19 +91,14 @@ async function buscarCategoria(categoriaId, tipo, usuarioId) {
 }
 
 function prepararDados(dados, categoria) {
-    const resultado = {
+    return {
         descricao: dados.descricao.trim(),
         valor: Number(dados.valor),
         tipo: dados.tipo,
         categoria: categoria.nome,
-        categoriaId: categoria.id
+        categoriaId: categoria.id,
+        data: prepararData(dados.data)
     }
-
-    if (dados.data) {
-        resultado.data = new Date(`${dados.data}T12:00:00.000Z`)
-    }
-
-    return resultado
 }
 
 const incluirCategoria = {
@@ -161,9 +172,10 @@ router.get('/', async (req, res) => {
                 usuarioId: req.session.usuarioId
             },
             include: incluirCategoria,
-            orderBy: {
-                data: 'desc'
-            }
+            orderBy: [
+                { data: 'desc' },
+                { id: 'desc' }
+            ]
         })
 
         return res.json(movimentacoes)
@@ -240,12 +252,18 @@ router.put('/:id', async (req, res) => {
             })
         }
 
+        const dadosAtualizados = prepararDados(req.body, categoria)
+
+        if (!req.body.data) {
+            delete dadosAtualizados.data
+        }
+
         const resultado = await prisma.movimentacoes.updateMany({
             where: {
                 id: Number(req.params.id),
                 usuarioId
             },
-            data: prepararDados(req.body, categoria)
+            data: dadosAtualizados
         })
 
         if (resultado.count === 0) {

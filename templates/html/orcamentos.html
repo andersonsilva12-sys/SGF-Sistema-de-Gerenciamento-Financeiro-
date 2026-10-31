@@ -44,12 +44,11 @@
                 <h2>Controle seus gastos e reservas</h2>
                 <p>Organize seu dinheiro em caixas e acompanhe como está utilizando seus recursos.</p>
             </div>
+
             <button class="botao botao-principal" id="btnNovaCaixa" type="button">
                 + Nova caixa
             </button>
         </section>
-
-        <p id="mensagemGlobal" class="mensagem mensagem-global" role="status" aria-live="polite"></p>
 
         <section class="resumos">
             <article class="cartao-resumo">
@@ -98,6 +97,7 @@
             </div>
         </section>
 
+        <!-- Modal de cadastro e edição de caixas -->
         <dialog id="modalCaixa" class="modal modal-caixa" aria-labelledby="tituloFormulario">
             <div class="modal-conteudo">
                 <div class="modal-cabecalho">
@@ -143,6 +143,7 @@
             </div>
         </dialog>
 
+        <!-- Modal de vinculação de categorias -->
         <dialog id="modalVinculo" class="modal modal-vinculo" aria-labelledby="tituloVinculo">
             <div class="modal-conteudo">
                 <div class="modal-cabecalho">
@@ -155,6 +156,7 @@
 
                 <form id="formVinculo">
                     <input type="hidden" id="caixaVinculo">
+
                     <div class="campos campos-vinculo">
                         <label class="campo">
                             Categoria de despesa
@@ -162,16 +164,19 @@
                                 <option value="">Selecione uma categoria</option>
                             </select>
                         </label>
+
                         <div class="campo campo-botao">
                             <span>&nbsp;</span>
                             <button class="botao botao-principal" type="submit">Cadastrar despesa</button>
                         </div>
                     </div>
+
                     <p id="mensagemVinculo" class="mensagem" role="status" aria-live="polite"></p>
                 </form>
             </div>
         </dialog>
 
+        <!-- Modal de movimentação da reserva -->
         <dialog id="modalMovimentacao" class="modal modal-movimentacao" aria-labelledby="tituloMovimentacao">
             <div class="modal-conteudo">
                 <div class="modal-cabecalho">
@@ -184,13 +189,6 @@
 
                 <form id="formMovimentacao">
                     <div class="campos campos-movimentacao">
-                        <label class="campo">
-                            Caixa de reserva
-                            <select id="caixaMovimentacao" required>
-                                <option value="">Selecione uma reserva</option>
-                            </select>
-                        </label>
-
                         <label class="campo">
                             Operação
                             <select id="tipoMovimentacao" required>
@@ -226,6 +224,7 @@
             </div>
         </dialog>
 
+        <!-- Modal de histórico -->
         <dialog id="modalHistorico" class="modal modal-historico" aria-labelledby="tituloHistorico">
             <div class="modal-conteudo">
                 <div class="modal-cabecalho">
@@ -238,7 +237,9 @@
 
                 <div class="historico-acoes">
                     <p id="mensagemHistorico" class="mensagem" role="status" aria-live="polite"></p>
-                    <button type="button" id="btnBaixarPdf" class="botao botao-principal" disabled>Baixar histórico em PDF</button>
+                    <button type="button" id="btnBaixarPdf" class="botao botao-principal" disabled>
+                        Baixar histórico em PDF
+                    </button>
                 </div>
 
                 <div class="tabela-container">
@@ -263,5 +264,8 @@
 
         <footer>SGF — Sistema de Gerenciamento Financeiro</footer>
     </main>
+
+    <!-- Notificação temporária -->
+    <div id="notificacao" class="notificacao" role="status" aria-live="polite"></div>
 </body>
 </html>

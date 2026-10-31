@@ -1,3 +1,4 @@
+
 const express = require('express')
 const prisma = require('../lib/prisma')
 
@@ -24,6 +25,7 @@ function validarId(valor) {
 function validarDados(body) {
     const nome = typeof body.nome === 'string' ? body.nome.trim() : ''
     const tipo = typeof body.tipo === 'string' ? body.tipo.trim().toLowerCase() : ''
+
     const limiteMensal = body.limiteMensal === '' || body.limiteMensal === null
         ? null
         : Number(body.limiteMensal)
@@ -54,26 +56,42 @@ function validarDados(body) {
 }
 
 async function calcularCaixa(caixa, usuarioId) {
-    const agora = new Date()
-
-    const inicio = new Date(Date.UTC(
-        agora.getFullYear(),
-        agora.getMonth(),
-        1
-    ))
-
-    const fim = new Date(Date.UTC(
-        agora.getFullYear(),
-        agora.getMonth() + 1,
-        1
-    ))
-
     if (caixa.tipo === 'despesa') {
+        const categorias = await prisma.categorias.findMany({
+            where: {
+                caixaId: caixa.id,
+                usuarioId,
+                tipo: 'despesa'
+            },
+            select: {
+                id: true,
+                nome: true
+            }
+        })
+
+        const idsCategorias = categorias.map(categoria => categoria.id)
+
+        const agora = new Date()
+
+        const inicio = new Date(Date.UTC(
+            agora.getFullYear(),
+            agora.getMonth(),
+            1,
+            0
+        ))
+
+        const fim = new Date(Date.UTC(
+            agora.getFullYear(),
+            agora.getMonth() + 1,
+            1,
+            0
+        ))
+
         const resultado = await prisma.movimentacoes.aggregate({
             where: {
                 usuarioId,
                 categoriaId: {
-                    in: caixa.categorias.map(categoria => categoria.id)
+                    in: idsCategorias
                 },
                 tipo: 'despesa',
                 data: {
@@ -87,16 +105,17 @@ async function calcularCaixa(caixa, usuarioId) {
         })
 
         const gasto = resultado._sum.valor || 0
+        const limite = Number(caixa.limiteMensal)
 
         return {
             ...caixa,
+            categorias,
             gasto,
-            restante: caixa.limiteMensal - gasto,
-            percentual: Math.min(
-                (gasto / caixa.limiteMensal) * 100,
-                100
-            ),
-            ultrapassou: gasto > caixa.limiteMensal
+            restante: limite - gasto,
+            percentual: limite > 0
+                ? Math.min((gasto / limite) * 100, 100)
+                : 0,
+            ultrapassou: gasto > limite
         }
     }
 
@@ -137,6 +156,8 @@ async function calcularCaixa(caixa, usuarioId) {
     }
 }
 
+router.use(autenticar)
+
 // Cadastrar caixa
 router.post('/', async (req, res) => {
     try {
@@ -169,10 +190,9 @@ router.post('/', async (req, res) => {
             }
         })
 
-        return res.status(201).json(await calcularCaixa(
-            caixa,
-            req.session.usuarioId
-        ))
+        return res.status(201).json(
+            await calcularCaixa(caixa, req.session.usuarioId)
+        )
     } catch (erro) {
         console.error('Erro ao cadastrar caixa:', erro)
         return res.status(500).json({
@@ -232,10 +252,9 @@ router.get('/:id', async (req, res) => {
             })
         }
 
-        return res.json(await calcularCaixa(
-            caixa,
-            req.session.usuarioId
-        ))
+        return res.json(
+            await calcularCaixa(caixa, req.session.usuarioId)
+        )
     } catch (erro) {
         console.error('Erro ao consultar caixa:', erro)
         return res.status(500).json({

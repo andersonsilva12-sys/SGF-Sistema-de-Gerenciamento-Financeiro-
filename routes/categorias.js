@@ -1,3 +1,4 @@
+
 const express = require('express')
 const prisma = require('../lib/prisma')
 
@@ -44,6 +45,12 @@ function validarDados(body) {
     if (tipo === 'receita' && caixaId !== null) {
         return {
             erro: 'Categorias de receita não podem ser vinculadas a caixas de despesas.'
+        }
+    }
+
+    if (tipo === 'despesa' && caixaId === null) {
+        return {
+            erro: 'Selecione uma caixa de despesas para esta categoria.'
         }
     }
 
@@ -290,7 +297,6 @@ router.delete('/:id', async (req, res) => {
         return res.json({
             mensagem: 'Categoria excluída com sucesso.'
         })
-
     } catch (erro) {
         console.error('Erro ao excluir categoria:', erro)
 
