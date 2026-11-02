@@ -17,44 +17,56 @@ function autenticar(req, res, next) {
 }
 
 function validarDados(body) {
-    const nome = typeof body.nome === 'string' ? body.nome.trim() : ''
-    const tipo = typeof body.tipo === 'string' ? body.tipo.trim().toLowerCase() : ''
+    const nome = typeof body.nome === 'string'
+        ? body.nome.trim()
+        : '';
 
-    let caixaId = null
+    const tipo = typeof body.tipo === 'string'
+        ? body.tipo.trim().toLowerCase()
+        : '';
 
-    if (body.caixaId !== undefined && body.caixaId !== null && body.caixaId !== '') {
-        caixaId = Number(body.caixaId)
+    let caixaId = null;
+
+    if (
+        body.caixaId !== undefined &&
+        body.caixaId !== null &&
+        body.caixaId !== ''
+    ) {
+        caixaId = Number(body.caixaId);
 
         if (!Number.isSafeInteger(caixaId) || caixaId <= 0) {
-            return { erro: 'Selecione uma caixa válida.' }
+            return {
+                erro: 'Selecione uma caixa válida.'
+            };
         }
     }
 
     if (!nome || nome.length > 100) {
         return {
             erro: 'Informe um nome de até 100 caracteres.'
-        }
+        };
     }
 
     if (!tiposValidos.includes(tipo)) {
         return {
             erro: 'O tipo deve ser receita ou despesa.'
-        }
+        };
     }
 
     if (tipo === 'receita' && caixaId !== null) {
         return {
             erro: 'Categorias de receita não podem ser vinculadas a caixas de despesas.'
-        }
+        };
     }
 
-    if (tipo === 'despesa' && caixaId === null) {
-        return {
-            erro: 'Selecione uma caixa de despesas para esta categoria.'
-        }
-    }
+    // A caixa é opcional para categorias de despesa.
+    // Categorias podem ser cadastradas independentemente de uma caixa.
 
-    return { nome, tipo, caixaId }
+    return {
+        nome,
+        tipo,
+        caixaId
+    };
 }
 
 function validarId(valor) {
@@ -268,48 +280,80 @@ router.put('/:id', async (req, res) => {
 })
 
 // Excluir categoria
+
+ // Excluir categoria e seus registros vinculados
 router.delete('/:id', async (req, res) => {
     try {
-        const id = validarId(req.params.id)
+        const id = validarId(req.params.id);
 
         if (!id) {
             return res.status(400).json({
                 mensagem: 'ID inválido.'
-            })
+            });
         }
 
-        const usuarioId = req.session.usuarioId
+        const usuarioId = req.session.usuarioId;
 
-        const categoria = await prisma.categorias.findFirst({
-            where: { id, usuarioId }
-        })
+        const resultado = await prisma.$transaction(async (tx) => {
+            // Confirma que a categoria pertence ao usuário autenticado.
+            const categoria = await tx.categorias.findFirst({
+                where: {
+                    id,
+                    usuarioId
+                }
+            });
 
-        if (!categoria) {
+            if (!categoria) {
+                return false;
+            }
+
+            // Exclui primeiro as movimentações vinculadas.
+            await tx.movimentacoes.deleteMany({
+                where: {
+                    categoriaId: id
+                }
+            });
+
+            // Exclui os orçamentos vinculados.
+            await tx.orcamentos.deleteMany({
+                where: {
+                    categoriaId: id
+                }
+            });
+
+            // Exclui a categoria somente depois dos registros relacionados.
+            await tx.categorias.delete({
+                where: {
+                    id
+                }
+            });
+
+            return true;
+        });
+
+        if (!resultado) {
             return res.status(404).json({
                 mensagem: 'Categoria não encontrada.'
-            })
+            });
         }
 
-        await prisma.categorias.delete({
-            where: { id }
-        })
-
         return res.json({
-            mensagem: 'Categoria excluída com sucesso.'
-        })
+            mensagem: 'Categoria e registros vinculados excluídos com sucesso.'
+        });
     } catch (erro) {
-        console.error('Erro ao excluir categoria:', erro)
+        console.error('Erro ao excluir categoria e registros vinculados:', erro);
 
         if (erro.code === 'P2003') {
             return res.status(409).json({
-                mensagem: 'Não é possível excluir uma categoria que possui movimentações ou orçamentos vinculados.'
-            })
+                mensagem: 'Ainda existem outros registros vinculados. Verifique os relacionamentos do banco de dados.'
+            });
         }
 
         return res.status(500).json({
-            mensagem: 'Erro ao excluir categoria.'
-        })
+            mensagem: 'Erro ao excluir categoria e seus registros vinculados.'
+        });
     }
-})
+});
+
 
 module.exports = router

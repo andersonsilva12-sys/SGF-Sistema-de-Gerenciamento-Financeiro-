@@ -52,34 +52,83 @@
         <header class="topo">
             <div>
                 <p class="subtitulo">ORGANIZAÇÃO FINANCEIRA</p>
-                <h1>Orçamentos</h1>
+                <h1>Movimentações</h1>
             </div>
             <span id="dataAtual" class="data"></span>
         </header>
 
-        <section class="resumos">
-            <article class="cartao-resumo">
-                <span>Receitas listadas</span>
-                <strong id="totalReceitas">R$ 0,00</strong>
-            </article>
+        <section class="painel painel-resumo-mensal" aria-labelledby="tituloResumoMensal">
+            <div class="cabecalho-resumo-mensal">
+                <div>
+                    <p class="subtitulo">RESUMO FINANCEIRO</p>
+                    <h2 id="tituloResumoMensal">Resumo de <span id="mesResumoAtual">Carregando mês...</span></h2>
+                </div>
+                <button class="botao botao-secundario" id="btnAlterarMesResumo" type="button">
+                    Alterar mês
+                </button>
+            </div>
 
-            <article class="cartao-resumo">
-                <span>Despesas listadas</span>
-                <strong id="totalDespesas">R$ 0,00</strong>
-            </article>
+            <section class="resumos" aria-label="Totais financeiros do mês selecionado">
+                <article class="cartao-resumo">
+                    <span>Receitas listadas</span>
+                    <strong id="totalReceitas">R$ 0,00</strong>
+                </article>
 
-            <article class="cartao-resumo">
-                <span>Saldo das movimentações</span>
-                <strong id="saldoMovimentacoes">R$ 0,00</strong>
-            </article>
+                <article class="cartao-resumo">
+                    <span>Despesas listadas</span>
+                    <strong id="totalDespesas">R$ 0,00</strong>
+                </article>
+
+                <article class="cartao-resumo">
+                    <span>Saldo das movimentações</span>
+                    <strong id="saldoMovimentacoes">R$ 0,00</strong>
+                </article>
+            </section>
         </section>
 
+        <dialog id="modalSelecionarMesResumo" class="modal-seletor-mes" aria-labelledby="tituloModalSelecionarMes">
+            <div class="modal-cabecalho-mes">
+                <div>
+                    <h2 id="tituloModalSelecionarMes">Alterar mês do resumo</h2>
+                    <p>Escolha o mês usado para calcular receitas, despesas e saldo.</p>
+                </div>
+                <button type="button" id="btnFecharSeletorMes" class="modal-fechar" aria-label="Fechar">×</button>
+            </div>
+
+            <label class="campo" for="seletorMesResumo">
+                Mês desejado
+                <input type="month" id="seletorMesResumo" required>
+            </label>
+
+            <div class="acoes-formulario">
+                <button class="botao botao-principal" id="btnAplicarMesResumo" type="button">Aplicar mês</button>
+                <button class="botao botao-secundario" id="btnCancelarSeletorMes" type="button">Cancelar</button>
+            </div>
+            <p id="mensagemSeletorMes" class="mensagem" role="status" aria-live="polite"></p>
+        </dialog>
+
+        <p id="mensagemGlobal" class="mensagem" role="status" aria-live="polite"></p>
+
         <section class="painel">
-            <div class="titulo-painel">
+            <div class="titulo-painel titulo-lista">
+                <div>
+                    <h2>Movimentações</h2>
+                    <p>Gerencie suas receitas e despesas.</p>
+                </div>
+
+                <button class="botao botao-principal" id="btnNovaMovimentacao" type="button">
+                    + Nova movimentação
+                </button>
+            </div>
+        </section>
+
+        <dialog id="modalMovimentacao" class="modal-movimentacao" aria-labelledby="tituloFormulario">
+            <div class="modal-cabecalho">
                 <div>
                     <h2 id="tituloFormulario">Nova movimentação</h2>
-                    <p>Preencha os dados abaixo para registrar uma movimentação.</p>
+                    <p>Preencha os dados para registrar uma movimentação.</p>
                 </div>
+                <button type="button" id="btnFecharModal" class="modal-fechar" aria-label="Fechar">×</button>
             </div>
 
             <form id="formMovimentacao">
@@ -120,9 +169,7 @@
                     <label class="campo">
                         Categoria
                         <select id="categoria" required>
-                            <option value="">
-                                Selecione uma categoria
-                            </option>
+                            <option value="">Selecione uma categoria</option>
                         </select>
                     </label>
 
@@ -133,38 +180,25 @@
                 </div>
 
                 <div class="acoes-formulario">
-                    <button
-                        class="botao botao-principal"
-                        id="btnSalvar"
-                        type="submit"
-                    >
+                    <button class="botao botao-principal" id="btnSalvar" type="submit">
                         Salvar movimentação
                     </button>
-
-                    <button
-                        class="botao botao-secundario"
-                        id="btnCancelar"
-                        type="button"
-                        hidden
-                    >
-                        Cancelar edição
+                    <button class="botao botao-secundario" id="btnCancelar" type="button">
+                        Cancelar
                     </button>
                 </div>
 
-                <p
-                    id="mensagem"
-                    class="mensagem"
-                    role="status"
-                    aria-live="polite"
-                ></p>
+                <p id="mensagem" class="mensagem" role="status" aria-live="polite"></p>
             </form>
-        </section>
+        </dialog>
+
+
 
         <section class="painel">
             <div class="titulo-painel titulo-lista">
                 <div>
-                    <h2>Histórico</h2>
-                    <p>Movimentações registradas na sua conta.</p>
+                    <h2>Histórico Mensal</h2>
+                    <p>Consulte suas movimentações organizadas por mês.</p>
                 </div>
 
                 <span id="quantidadeRegistros" class="contador">
@@ -192,27 +226,10 @@
                 </label>
             </div>
 
-            <div class="tabela-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Descrição</th>
-                            <th>Categoria</th>
-                            <th>Data</th>
-                            <th>Tipo</th>
-                            <th>Valor</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="listaMovimentacoes">
-                        <tr>
-                            <td colspan="6" class="estado-vazio">
-                                Carregando movimentações...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="tabela-container container-quadrantes">
+                <div id="quadrantesMeses" class="quadrantes-meses" aria-live="polite">
+                    <div class="quadrante-vazio">Carregando movimentações...</div>
+                </div>
             </div>
         </section>
 

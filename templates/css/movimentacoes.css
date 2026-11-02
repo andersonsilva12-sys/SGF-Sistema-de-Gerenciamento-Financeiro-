@@ -1,4 +1,3 @@
-
 /* ========================================
    RESUMOS FINANCEIROS
 ======================================== */
@@ -190,6 +189,71 @@
 }
 
 /* ========================================
+   POP-UP DE MOVIMENTAÇÕES
+======================================== */
+
+/* Centraliza o pop-up horizontal e verticalmente */
+#modalMovimentacao {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+
+    width: calc(100% - 32px);
+    max-width: 600px;
+
+    max-height: 85vh;
+    max-height: 85dvh;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    padding: 30px;
+
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+
+    background: var(--superficie);
+    color: var(--texto);
+
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* Garante que o pop-up fechado não apareça na página */
+#modalMovimentacao:not([open]) {
+    display: none;
+}
+
+/* Fundo escurecido atrás do pop-up */
+#modalMovimentacao::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+}
+
+/* Espaçamento do cabeçalho do pop-up */
+#modalMovimentacao .titulo-painel {
+    margin-bottom: 24px;
+}
+
+/* Permite que o conteúdo ocupe a largura disponível */
+#modalMovimentacao form {
+    width: 100%;
+}
+
+#modalMovimentacao .campos {
+    width: 100%;
+}
+
+/* Evita que os botões fiquem espremidos */
+#modalMovimentacao .acoes-formulario {
+    justify-content: flex-end;
+}
+
+/* Impede que o pop-up fique atrás de outros elementos */
+#modalMovimentacao {
+    z-index: 1000;
+}
+
+/* ========================================
    MENSAGENS
 ======================================== */
 
@@ -280,8 +344,7 @@
    BOTÕES EDITAR E EXCLUIR
 ======================================== */
 
-/* Estiliza botões dentro das células de ações,
-   mesmo que o JavaScript use classes diferentes. */
+/* Estiliza os botões dentro das células de ações */
 
 .tabela-container td:last-child {
     min-width: 155px;
@@ -379,5 +442,504 @@
     .tabela-container td,
     .tabela-container th {
         padding: 12px;
+    }
+
+    /* Ajustes do pop-up em telas pequenas */
+    #modalMovimentacao {
+        width: calc(100% - 24px);
+        max-width: none;
+
+        max-height: 90vh;
+        max-height: 90dvh;
+
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    #modalMovimentacao .acoes-formulario {
+        flex-direction: column;
+    }
+
+    #modalMovimentacao .acoes-formulario .botao {
+        width: 100%;
+    }
+}
+
+
+/* ========================================
+   HISTÓRICO ORGANIZADO POR MÊS
+======================================== */
+
+.tabela-container.container-quadrantes {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.quadrantes-meses {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    align-items: stretch;
+}
+
+.quadrante-mes {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border: 1px solid var(--borda, #dbe2e8);
+    border-radius: 12px;
+    background: var(--superficie, #fff);
+    box-shadow: 0 3px 12px rgba(15, 23, 42, .04);
+}
+
+.quadrante-cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.quadrante-cabecalho h3 {
+    margin: 0 0 5px;
+    color: var(--azul, #23384d);
+    font-size: 17px;
+    text-transform: capitalize;
+}
+
+.quadrante-cabecalho p {
+    margin: 0;
+    color: var(--texto-suave, #687789);
+    font-size: 12px;
+}
+
+.quadrante-contador {
+    flex-shrink: 0;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: var(--fundo, #f1f5f9);
+    color: var(--texto-suave, #526273);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.quadrante-lista {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.quadrante-movimento {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+    padding: 12px 0;
+    border-top: 1px solid var(--borda, #e4e9ee);
+}
+
+.quadrante-movimento:first-child {
+    border-top: 0;
+}
+
+.quadrante-movimento strong {
+    display: block;
+    overflow-wrap: anywhere;
+    color: var(--texto, #253242);
+    font-size: 13px;
+}
+
+.quadrante-movimento small {
+    display: block;
+    margin-top: 4px;
+    color: var(--texto-suave, #687789);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.quadrante-valor,
+#modalHistoricoMes .historico-valor {
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.quadrante-valor.receita,
+#modalHistoricoMes .historico-valor.receita {
+    color: #238653;
+}
+
+.quadrante-valor.despesa,
+#modalHistoricoMes .historico-valor.despesa {
+    color: #c16b52;
+}
+
+.quadrante-vazio {
+    padding: 18px 12px;
+    color: var(--texto-suave, #687789);
+    text-align: center;
+    font-size: 13px;
+    border: 1px dashed var(--borda, #dbe2e8);
+    border-radius: 10px;
+}
+
+.acoes-quadrante {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.botao-quadrante {
+    padding: 9px 13px;
+    border: 1px solid var(--borda, #dbe2e8);
+    border-radius: 7px;
+    background: var(--superficie, #fff);
+    color: var(--texto, #253242);
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.botao-quadrante.ver {
+    border-color: var(--azul, #23384d);
+    background: var(--azul, #23384d);
+    color: #fff;
+}
+
+.botao-quadrante.excluir {
+    border-color: #f0c9c5;
+    background: #fff4f3;
+    color: #b73535;
+}
+
+.botao-quadrante:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+/* ========================================
+   POP-UP CENTRALIZADO COM O HISTÓRICO DO MÊS
+======================================== */
+
+#modalHistoricoMes {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: calc(100% - 32px);
+    max-width: 1100px;
+    max-height: 88vh;
+    max-height: 88dvh;
+    overflow: auto;
+    padding: 26px;
+    border: 1px solid var(--borda, #dbe2e8);
+    border-radius: 16px;
+    background: var(--superficie, #fff);
+    color: var(--texto, #253242);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .28);
+}
+
+#modalHistoricoMes:not([open]) {
+    display: none;
+}
+
+#modalHistoricoMes::backdrop {
+    background: rgba(15, 23, 42, .62);
+    backdrop-filter: blur(3px);
+}
+
+.historico-modal-cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.historico-modal-cabecalho h2 {
+    margin: 0 0 7px;
+    color: var(--azul, #23384d);
+    text-transform: capitalize;
+}
+
+.historico-modal-cabecalho p {
+    margin: 0;
+    color: var(--texto-suave, #687789);
+    font-size: 13px;
+}
+
+.historico-modal-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+}
+
+.historico-modal-fechar {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--borda, #dbe2e8);
+    border-radius: 8px;
+    background: var(--superficie, #fff);
+    color: var(--texto, #253242);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.historico-tabela-container {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--borda, #dbe2e8);
+    border-radius: 9px;
+}
+
+#modalHistoricoMes table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+#modalHistoricoMes th {
+    padding: 12px;
+    background: var(--fundo, #f1f5f9);
+    color: var(--texto-suave, #526273);
+    font-size: 11px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+#modalHistoricoMes td {
+    padding: 12px;
+    border-top: 1px solid var(--borda, #e4e9ee);
+    vertical-align: middle;
+}
+
+#modalHistoricoMes .historico-resumo-mes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    margin: 16px 0;
+    font-size: 13px;
+}
+
+#modalHistoricoMes .historico-resumo-mes strong {
+    color: var(--azul, #23384d);
+}
+
+@media (max-width: 650px) {
+    .quadrantes-meses {
+        grid-template-columns: 1fr;
+    }
+
+    #modalHistoricoMes {
+        width: calc(100% - 20px);
+        max-height: 92vh;
+        max-height: 92dvh;
+        padding: 17px;
+    }
+
+    .historico-modal-cabecalho {
+        flex-direction: column;
+    }
+
+    .historico-modal-acoes {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+
+/* Cabeçalho e botão de fechar do pop-up de nova movimentação */
+.modal-movimentacao .modal-cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.modal-movimentacao .modal-cabecalho h2 {
+    margin: 0 0 6px;
+}
+
+.modal-movimentacao .modal-cabecalho p {
+    margin: 0;
+    color: var(--texto-suave, #687789);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.modal-movimentacao .modal-fechar {
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 6px;
+    padding: 2px 6px;
+    background: transparent;
+    color: var(--texto, #253242);
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.modal-movimentacao .modal-fechar:hover {
+    background: var(--fundo, #f1f5f9);
+}
+
+.modal-movimentacao .campos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.modal-movimentacao .campo-descricao {
+    grid-column: 1 / -1;
+}
+
+.modal-movimentacao .acoes-formulario {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+@media (max-width: 560px) {
+    .modal-movimentacao {
+        padding: 20px;
+    }
+
+    .modal-movimentacao .campos {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-movimentacao .campo-descricao {
+        grid-column: auto;
+    }
+}
+
+
+/* ========================================
+   RESUMO FINANCEIRO POR MÊS
+======================================== */
+
+.painel-resumo-mensal {
+    padding: 25px;
+}
+
+.cabecalho-resumo-mensal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.cabecalho-resumo-mensal .subtitulo {
+    margin-bottom: 7px;
+}
+
+.cabecalho-resumo-mensal h2 {
+    margin: 0;
+    color: var(--azul);
+    font-size: 20px;
+    text-transform: capitalize;
+}
+
+#mesResumoAtual {
+    color: var(--azul);
+}
+
+.painel-resumo-mensal .resumos {
+    margin-bottom: 0;
+}
+
+#modalSelecionarMesResumo {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: calc(100% - 32px);
+    max-width: 460px;
+    max-height: 90vh;
+    max-height: 90dvh;
+    overflow-y: auto;
+    padding: 26px;
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+    background: var(--superficie);
+    color: var(--texto);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .28);
+}
+
+#modalSelecionarMesResumo:not([open]) {
+    display: none;
+}
+
+#modalSelecionarMesResumo::backdrop {
+    background: rgba(15, 23, 42, .58);
+    backdrop-filter: blur(3px);
+}
+
+.modal-cabecalho-mes {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.modal-cabecalho-mes h2 {
+    margin: 0 0 7px;
+    color: var(--azul);
+    font-size: 19px;
+}
+
+.modal-cabecalho-mes p {
+    margin: 0;
+    color: var(--texto-suave);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+#seletorMesResumo {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    background: var(--superficie);
+    color: var(--texto);
+    font: inherit;
+}
+
+#modalSelecionarMesResumo .acoes-formulario {
+    justify-content: flex-end;
+}
+
+@media (max-width: 650px) {
+    .painel-resumo-mensal {
+        padding: 18px;
+    }
+
+    .cabecalho-resumo-mensal {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    #modalSelecionarMesResumo {
+        padding: 20px;
+    }
+
+    #modalSelecionarMesResumo .acoes-formulario {
+        flex-direction: column;
+    }
+
+    #modalSelecionarMesResumo .acoes-formulario .botao {
+        width: 100%;
     }
 }
