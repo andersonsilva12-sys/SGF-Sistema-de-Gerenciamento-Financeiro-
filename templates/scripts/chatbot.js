@@ -37,6 +37,14 @@ const paginaAtual = document.body.dataset.page || 'dashboard';
 const contextoAtual = contextosChatbot[paginaAtual] || contextosChatbot.dashboard;
 const containerChatbot = document.getElementById('chatbot-container');
 
+// Configuração do Markdown
+if (window.marked) {
+    marked.setOptions({
+        gfm: true,
+        breaks: true
+    });
+}
+
 if (containerChatbot) {
 
     containerChatbot.innerHTML = `
@@ -122,6 +130,17 @@ if (containerChatbot) {
     let primeiraAbertura = true;
     let aguardandoResposta = false;
 
+    // Converte Markdown em HTML seguro
+    function formatarMarkdown(texto) {
+        if (!window.marked || !window.DOMPurify) {
+            return null;
+        }
+
+        const html = window.marked.parse(String(texto));
+
+        return window.DOMPurify.sanitize(html);
+    }
+
     function abrirChatbot() {
         popup.classList.add('aberto');
 
@@ -147,32 +166,22 @@ if (containerChatbot) {
         const mensagem = document.createElement('div');
 
         mensagem.classList.add('chatbot-mensagem', tipo);
-        mensagem.textContent = texto;
+
+        if (tipo === 'bot') {
+            const htmlSeguro = formatarMarkdown(texto);
+
+            if (htmlSeguro !== null) {
+                mensagem.innerHTML = htmlSeguro;
+            } else {
+                mensagem.textContent = texto;
+            }
+        } else {
+            // Mensagens do usuário continuam como texto puro
+            mensagem.textContent = texto;
+        }
 
         mensagens.appendChild(mensagem);
         mensagens.scrollTop = mensagens.scrollHeight;
-    }
-
-    function gerarRespostaSimulada(mensagem) {
-        const texto = mensagem.toLowerCase();
-
-        if (texto.includes('despesa') || texto.includes('gasto')) {
-            return 'Posso ajudar você a analisar suas despesas e identificar onde está gastando mais. Quando a IA estiver integrada, poderei consultar suas movimentações reais.';
-        }
-
-        if (texto.includes('receita') || texto.includes('ganho')) {
-            return 'Podemos analisar suas receitas, identificar suas principais fontes de renda e acompanhar sua evolução financeira. Essa funcionalidade será conectada aos seus dados futuramente.';
-        }
-
-        if (texto.includes('orçamento') || texto.includes('orcamento')) {
-            return 'Um bom orçamento ajuda a manter seus gastos sob controle. Com a integração da IA, poderei analisar seus limites e comparar os valores planejados com os realizados.';
-        }
-
-        if (texto.includes('meta')) {
-            return 'Definir metas financeiras é um ótimo caminho para organizar seu dinheiro. Futuramente poderei acompanhar seu progresso e sugerir estratégias para alcançar seus objetivos.';
-        }
-
-        return 'Entendi sua pergunta! Atualmente estou em fase de desenvolvimento e ainda não tenho acesso aos seus dados financeiros. Em breve poderei realizar análises personalizadas com inteligência artificial.';
     }
 
     async function enviarMensagem(mensagem) {
@@ -196,20 +205,33 @@ if (containerChatbot) {
         mensagens.scrollTop = mensagens.scrollHeight;
 
         try {
-            const resposta = await new Promise(resolve => {
-                setTimeout(() => {
-                    resolve(gerarRespostaSimulada(mensagem));
-                }, 900);
+            const respostaAPI = await fetch('/chatbot/mensagem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    mensagem,
+                    pagina: paginaAtual
+                })
             });
 
+            const dados = await respostaAPI.json();
+
+            if (!respostaAPI.ok) {
+                throw new Error(
+                    dados.mensagem || 'Não foi possível obter uma resposta.'
+                );
+            }
+
             digitando.remove();
-            adicionarMensagem(resposta, 'bot');
+            adicionarMensagem(dados.resposta, 'bot');
 
         } catch (erro) {
             digitando.remove();
 
             adicionarMensagem(
-                'Não foi possível processar sua mensagem. Tente novamente.',
+                erro.message || 'Não foi possível processar sua mensagem. Tente novamente.',
                 'bot'
             );
 

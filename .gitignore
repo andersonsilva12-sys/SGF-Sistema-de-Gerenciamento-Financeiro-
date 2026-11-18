@@ -1,5 +1,10 @@
 node_modules
+
 # Keep environment variables out of version control
 .env
 
+# Python virtual environment
+ia/.venv/
+
+# Prisma generated files
 /generated/prisma

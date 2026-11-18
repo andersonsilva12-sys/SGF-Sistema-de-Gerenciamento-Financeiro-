@@ -10,6 +10,7 @@ const categoriasRoutes = require('./routes/categorias')
 const orcamentosRoutes = require('./routes/orcamentos')
 const metasRoutes = require('./routes/metas')
 const caixasRoutes = require('./routes/caixas')
+const chatbotRoutes = require('./routes/chatbot')
 
 
 const port = 3000
@@ -46,6 +47,7 @@ app.use('/orcamentos', orcamentosRoutes)
 app.use('/metas', metasRoutes)
 app.use('/caixas', caixasRoutes)
 app.use('/caixas', movimentacoesCaixasRoutes)
+app.use('/chatbot', chatbotRoutes)
 
 
 app.get('/', (req, res) => {
