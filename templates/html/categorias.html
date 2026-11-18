@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,14 +8,17 @@
 
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/categorias.css">
+    <link rel="stylesheet" href="/css/chatbot.css">
+
     <script src="/scripts/categorias.js" defer></script>
+    <script src="/scripts/chatbot.js" defer></script>
 </head>
-<body>
-    <!-- Notificação temporária de sucesso no topo da página -->
+<body data-page="categorias">
     <div id="notificacaoTopo" class="notificacao-topo" role="status" aria-live="polite" aria-atomic="true" hidden>
         <span class="notificacao-topo-icone" aria-hidden="true">✓</span>
         <span id="textoNotificacaoTopo"></span>
     </div>
+
     <aside class="menu">
         <div class="logo">
             <span class="logo-icon">S</span>
@@ -110,7 +114,6 @@
         <footer>SGF — Sistema de Gerenciamento Financeiro</footer>
     </main>
 
-    <!-- Modal para criar e editar categorias -->
     <div id="modalFormularioCategoria" class="modal modal-formulario" role="dialog" aria-modal="true" aria-labelledby="tituloFormulario" hidden>
         <div class="modal-conteudo modal-conteudo-formulario">
             <div class="modal-cabecalho">
@@ -147,7 +150,6 @@
         </div>
     </div>
 
-    <!-- Modal com a lista completa e seus filtros -->
     <div id="modalTodasCategorias" class="modal modal-todas" role="dialog" aria-modal="true" aria-labelledby="tituloTodasCategorias" hidden>
         <div class="modal-conteudo modal-conteudo-lista">
             <div class="modal-cabecalho">
@@ -195,5 +197,7 @@
             </div>
         </div>
     </div>
+
+    <div id="chatbot-container"></div>
 </body>
 </html>

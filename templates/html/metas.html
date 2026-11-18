@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -5,12 +6,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SGF - Metas</title>
+
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/metas.css">
+    <link rel="stylesheet" href="/css/chatbot.css">
+
     <script src="/scripts/metas.js" defer></script>
+    <script src="/scripts/chatbot.js" defer></script>
 </head>
 
-<body>
+<body data-page="metas">
 
     <aside class="menu">
         <div class="logo">
@@ -82,8 +87,7 @@
                 <div class="campos">
                     <div class="campo campo-titulo">
                         <label for="titulo">Nome da meta</label>
-                        <input type="text" id="titulo" maxlength="100" placeholder="Ex.: Economizar para uma viagem"
-                            required>
+                        <input type="text" id="titulo" maxlength="100" placeholder="Ex.: Economizar para uma viagem" required>
                     </div>
 
                     <div class="campo">
@@ -134,6 +138,7 @@
         <p id="mensagem" class="mensagem"></p>
     </main>
 
-</body>
+    <div id="chatbot-container"></div>
 
+</body>
 </html>

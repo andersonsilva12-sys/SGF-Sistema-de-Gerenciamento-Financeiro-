@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,10 +9,13 @@
 
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/movimentacoes.css">
+    <link rel="stylesheet" href="/css/chatbot.css">
 
     <script src="/scripts/movimentacoes.js" defer></script>
+    <script src="/scripts/chatbot.js" defer></script>
 </head>
-<body>
+
+<body data-page="transacoes">
     <aside class="menu">
         <div class="logo">
             <span class="logo-icon">S</span>
@@ -46,7 +50,6 @@
             <a href="#" id="btnSair">Sair da conta</a>
         </div>
     </aside>
-
 
     <main class="conteudo">
         <header class="topo">
@@ -192,8 +195,6 @@
             </form>
         </dialog>
 
-
-
         <section class="painel">
             <div class="titulo-painel titulo-lista">
                 <div>
@@ -237,5 +238,7 @@
             SGF — Sistema de Gerenciamento Financeiro
         </footer>
     </main>
+
+    <div id="chatbot-container"></div>
 </body>
 </html>
