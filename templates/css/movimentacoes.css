@@ -943,3 +943,52 @@
         width: 100%;
     }
 }
+
+/* ========================================
+   NOTIFICAÇÕES NO TOPO
+======================================== */
+
+.notificacao-topo-movimentacoes {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translate(-50%, -20px);
+
+    background: #067647;
+    color: #fff;
+
+    padding: 15px 25px;
+    border-radius: 10px;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+    opacity: 0;
+    visibility: hidden;
+
+    z-index: 99999;
+
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.notificacao-topo-movimentacoes.visivel {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+}
+
+.notificacao-topo-movimentacoes.erro {
+    background: #b42318;
+}
+
+@media (max-width: 480px) {
+    .notificacao-topo-movimentacoes {
+        top: 12px;
+        width: calc(100vw - 24px);
+        padding: 14px 18px;
+        font-size: 14px;
+    }
+}

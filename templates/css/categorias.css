@@ -544,3 +544,52 @@ footer {
         padding: 12px 8px;
     }
 }
+
+/* ========================================
+   NOTIFICAÇÕES NO TOPO
+======================================== */
+
+.notificacao-topo-categorias {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translate(-50%, -20px);
+
+    background: #067647;
+    color: #fff;
+
+    padding: 15px 25px;
+    border-radius: 10px;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+    opacity: 0;
+    visibility: hidden;
+
+    z-index: 99999;
+
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.notificacao-topo-categorias.visivel {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+}
+
+.notificacao-topo-categorias.erro {
+    background: #b42318;
+}
+
+@media (max-width: 480px) {
+    .notificacao-topo-categorias {
+        top: 12px;
+        width: calc(100vw - 24px);
+        padding: 14px 18px;
+        font-size: 14px;
+    }
+}

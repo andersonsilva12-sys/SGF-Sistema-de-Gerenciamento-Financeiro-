@@ -1,3 +1,4 @@
+
 const express = require('express')
 const prisma = require('../lib/prisma')
 
@@ -6,7 +7,7 @@ const router = express.Router()
 const tiposValidos = ['economia', 'despesa']
 
 function autenticar(req, res, next) {
-    if (!req.session || !req.session.usuarioId) {
+    if (!req.session?.usuarioId) {
         return res.status(401).json({
             mensagem: 'Você precisa entrar na sua conta.'
         })
@@ -16,43 +17,67 @@ function autenticar(req, res, next) {
 }
 
 function validarId(id) {
-    return /^\d+$/.test(id) &&
+    return /^\d+$/.test(String(id)) &&
         Number.isSafeInteger(Number(id)) &&
         Number(id) > 0
 }
 
 function validarData(data) {
-    if (typeof data !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    if (
+        typeof data !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(data)
+    ) {
         return false
     }
 
-    const convertida = new Date(`${data}T12:00:00.000Z`)
+    const dataConvertida = new Date(`${data}T12:00:00.000Z`)
 
-    return !Number.isNaN(convertida.getTime()) &&
-        convertida.toISOString().slice(0, 10) === data
+    return !Number.isNaN(dataConvertida.getTime()) &&
+        dataConvertida.toISOString().slice(0, 10) === data
 }
 
-function validarDados(dados) {
-    const { titulo, tipo, valorAlvo, dataInicio, dataFim } = dados
+function validarDados(dados = {}) {
+    const {
+        titulo,
+        tipo,
+        valorAlvo,
+        dataInicio,
+        dataFim,
+        caixaId
+    } = dados
 
     if (
         typeof titulo !== 'string' ||
         !titulo.trim() ||
-        titulo.trim().length > 100 ||
-        !tiposValidos.includes(tipo) ||
+        titulo.trim().length > 100
+    ) {
+        return 'Informe um título com até 100 caracteres.'
+    }
+
+    if (!tiposValidos.includes(tipo)) {
+        return 'Selecione um tipo de meta válido.'
+    }
+
+    if (
         valorAlvo === undefined ||
         valorAlvo === null ||
         String(valorAlvo).trim() === '' ||
         !Number.isFinite(Number(valorAlvo)) ||
-        Number(valorAlvo) <= 0 ||
-        !validarData(dataInicio) ||
-        !validarData(dataFim)
+        Number(valorAlvo) <= 0
     ) {
-        return 'Preencha os campos corretamente.'
+        return 'Informe um valor-alvo maior que zero.'
+    }
+
+    if (!validarData(dataInicio) || !validarData(dataFim)) {
+        return 'Informe as datas inicial e final corretamente.'
     }
 
     if (dataInicio > dataFim) {
         return 'A data inicial não pode ser posterior à data final.'
+    }
+
+    if (!validarId(caixaId)) {
+        return 'Selecione uma caixa válida.'
     }
 
     return null
@@ -64,82 +89,201 @@ function prepararDados(dados) {
         tipo: dados.tipo,
         valorAlvo: Number(dados.valorAlvo),
         dataInicio: new Date(`${dados.dataInicio}T12:00:00.000Z`),
-        dataFim: new Date(`${dados.dataFim}T12:00:00.000Z`)
+        dataFim: new Date(`${dados.dataFim}T12:00:00.000Z`),
+        caixaId: Number(dados.caixaId)
     }
 }
 
-async function calcularProgresso(meta, usuarioId) {
-    const dataFinal = new Date(meta.dataFim)
-    dataFinal.setUTCDate(dataFinal.getUTCDate() + 1)
-    dataFinal.setUTCHours(0, 0, 0, 0)
+function inicioDoDia(data) {
+    return new Date(
+        `${data.toISOString().slice(0, 10)}T00:00:00.000Z`
+    )
+}
 
-    const movimentacoes = await prisma.movimentacoes.findMany({
+function fimDoPeriodo(data) {
+    const final = new Date(data)
+    final.setUTCDate(final.getUTCDate() + 1)
+    final.setUTCHours(0, 0, 0, 0)
+
+    return final
+}
+
+function arredondar(valor) {
+    return Math.round((Number(valor || 0) + Number.EPSILON) * 100) / 100
+}
+
+async function buscarCaixaValida(caixaId, tipoMeta, usuarioId) {
+    const tipoCaixa = tipoMeta === 'economia'
+        ? 'reserva'
+        : 'despesa'
+
+    return prisma.caixas.findFirst({
         where: {
+            id: Number(caixaId),
             usuarioId,
-            data: {
-                gte: new Date(`${meta.dataInicio.toISOString().slice(0, 10)}T00:00:00.000Z`),
-                lt: dataFinal
-            },
-            tipo: meta.tipo === 'economia'
-                ? { in: ['receita', 'despesa'] }
-                : 'despesa'
-        },
-        select: {
-            valor: true,
-            tipo: true
+            tipo: tipoCaixa
         }
     })
+}
 
+async function calcularProgresso(meta, usuarioId) {
     let progresso = 0
+    let saldoCaixa = 0
 
-    if (meta.tipo === 'economia') {
-        const receitas = movimentacoes
-            .filter(m => m.tipo === 'receita')
-            .reduce((total, m) => total + m.valor, 0)
+    const caixa = meta.caixaId
+        ? await prisma.caixas.findFirst({
+            where: {
+                id: meta.caixaId,
+                usuarioId
+            }
+        })
+        : null
 
-        const despesas = movimentacoes
-            .filter(m => m.tipo === 'despesa')
-            .reduce((total, m) => total + m.valor, 0)
+    if (
+        caixa &&
+        meta.tipo === 'economia' &&
+        caixa.tipo === 'reserva'
+    ) {
+        const movimentacoes = await prisma.movimentacoesCaixas.findMany({
+            where: {
+                usuarioId,
+                caixaId: caixa.id
+            },
+            select: {
+                tipo: true,
+                valor: true
+            }
+        })
 
-        progresso = receitas - despesas
-    } else {
-        progresso = movimentacoes.reduce((total, m) => total + m.valor, 0)
+        progresso = movimentacoes.reduce((saldo, movimentacao) => {
+            const tipoMovimento = String(movimentacao.tipo || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+
+            const valor = Number(movimentacao.valor || 0)
+
+            if (['deposito', 'entrada'].includes(tipoMovimento)) {
+                return saldo + valor
+            }
+
+            if (['retirada', 'saque'].includes(tipoMovimento)) {
+                return saldo - valor
+            }
+
+            return saldo
+        }, 0)
+
+        saldoCaixa = progresso
     }
 
-    const percentual = meta.valorAlvo > 0
-        ? (progresso / meta.valorAlvo) * 100
+    if (
+        caixa &&
+        meta.tipo === 'despesa' &&
+        caixa.tipo === 'despesa'
+    ) {
+        const categorias = await prisma.categorias.findMany({
+            where: {
+                usuarioId,
+                caixaId: caixa.id
+            },
+            select: {
+                id: true
+            }
+        })
+
+        const idsCategorias = categorias.map(categoria => categoria.id)
+
+        if (idsCategorias.length > 0) {
+            const movimentacoes = await prisma.movimentacoes.findMany({
+                where: {
+                    usuarioId,
+                    categoriaId: {
+                        in: idsCategorias
+                    },
+                    tipo: 'despesa',
+                    data: {
+                        gte: inicioDoDia(meta.dataInicio),
+                        lt: fimDoPeriodo(meta.dataFim)
+                    }
+                },
+                select: {
+                    valor: true
+                }
+            })
+
+            progresso = movimentacoes.reduce(
+                (total, movimentacao) =>
+                    total + Number(movimentacao.valor || 0),
+                0
+            )
+        }
+    }
+
+    progresso = Math.max(0, arredondar(progresso))
+    saldoCaixa = Math.max(0, arredondar(saldoCaixa))
+
+    const valorAlvo = Number(meta.valorAlvo || 0)
+
+    const percentual = valorAlvo > 0
+        ? Math.min(100, Math.max(0, (progresso / valorAlvo) * 100))
         : 0
+
+    const restante = Math.max(0, arredondar(valorAlvo - progresso))
 
     return {
         ...meta,
-        progresso: Math.max(0, Number(progresso.toFixed(2))),
-        percentual: Number(Math.max(0, percentual).toFixed(2)),
-        restante: Number((meta.valorAlvo - progresso).toFixed(2))
+        caixa: caixa
+            ? {
+                id: caixa.id,
+                nome: caixa.nome,
+                tipo: caixa.tipo,
+                saldo: meta.tipo === 'economia' ? saldoCaixa : null
+            }
+            : null,
+        caixaNome: caixa?.nome || null,
+        progresso,
+        percentual: arredondar(percentual),
+        restante
     }
 }
 
 router.use(autenticar)
 
-// Cadastrar meta
+// CADASTRAR META
 router.post('/', async (req, res) => {
     try {
-        const erroValidacao = validarDados(req.body)
+        const erro = validarDados(req.body)
 
-        if (erroValidacao) {
+        if (erro) {
+            return res.status(400).json({ mensagem: erro })
+        }
+
+        const usuarioId = req.session.usuarioId
+
+        const caixa = await buscarCaixaValida(
+            req.body.caixaId,
+            req.body.tipo,
+            usuarioId
+        )
+
+        if (!caixa) {
             return res.status(400).json({
-                mensagem: erroValidacao
+                mensagem: req.body.tipo === 'economia'
+                    ? 'Selecione uma reserva financeira sua.'
+                    : 'Selecione uma caixa de despesas sua.'
             })
         }
 
         const meta = await prisma.metas.create({
             data: {
                 ...prepararDados(req.body),
-                usuarioId: req.session.usuarioId
+                usuarioId
             }
         })
 
         return res.status(201).json(
-            await calcularProgresso(meta, req.session.usuarioId)
+            await calcularProgresso(meta, usuarioId)
         )
     } catch (erro) {
         console.error('Erro ao cadastrar meta:', erro)
@@ -150,23 +294,21 @@ router.post('/', async (req, res) => {
     }
 })
 
-// Listar metas
+// LISTAR METAS
 router.get('/', async (req, res) => {
     try {
+        const usuarioId = req.session.usuarioId
+
         const metas = await prisma.metas.findMany({
-            where: {
-                usuarioId: req.session.usuarioId
-            },
-            orderBy: {
-                criadaEm: 'desc'
-            }
+            where: { usuarioId },
+            orderBy: { criadaEm: 'desc' }
         })
 
-        const metasComProgresso = await Promise.all(
-            metas.map(meta => calcularProgresso(meta, req.session.usuarioId))
+        const resultado = await Promise.all(
+            metas.map(meta => calcularProgresso(meta, usuarioId))
         )
 
-        return res.json(metasComProgresso)
+        return res.json(resultado)
     } catch (erro) {
         console.error('Erro ao listar metas:', erro)
 
@@ -176,19 +318,19 @@ router.get('/', async (req, res) => {
     }
 })
 
-// Consultar uma meta
+// CONSULTAR UMA META
 router.get('/:id', async (req, res) => {
     try {
         if (!validarId(req.params.id)) {
-            return res.status(400).json({
-                mensagem: 'ID inválido.'
-            })
+            return res.status(400).json({ mensagem: 'ID inválido.' })
         }
+
+        const usuarioId = req.session.usuarioId
 
         const meta = await prisma.metas.findFirst({
             where: {
                 id: Number(req.params.id),
-                usuarioId: req.session.usuarioId
+                usuarioId
             }
         })
 
@@ -198,9 +340,7 @@ router.get('/:id', async (req, res) => {
             })
         }
 
-        return res.json(
-            await calcularProgresso(meta, req.session.usuarioId)
-        )
+        return res.json(await calcularProgresso(meta, usuarioId))
     } catch (erro) {
         console.error('Erro ao consultar meta:', erro)
 
@@ -210,27 +350,39 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-// Editar meta
+// EDITAR META
 router.put('/:id', async (req, res) => {
     try {
         if (!validarId(req.params.id)) {
-            return res.status(400).json({
-                mensagem: 'ID inválido.'
-            })
+            return res.status(400).json({ mensagem: 'ID inválido.' })
         }
 
-        const erroValidacao = validarDados(req.body)
+        const erro = validarDados(req.body)
 
-        if (erroValidacao) {
+        if (erro) {
+            return res.status(400).json({ mensagem: erro })
+        }
+
+        const usuarioId = req.session.usuarioId
+
+        const caixa = await buscarCaixaValida(
+            req.body.caixaId,
+            req.body.tipo,
+            usuarioId
+        )
+
+        if (!caixa) {
             return res.status(400).json({
-                mensagem: erroValidacao
+                mensagem: req.body.tipo === 'economia'
+                    ? 'Selecione uma reserva financeira sua.'
+                    : 'Selecione uma caixa de despesas sua.'
             })
         }
 
         const resultado = await prisma.metas.updateMany({
             where: {
                 id: Number(req.params.id),
-                usuarioId: req.session.usuarioId
+                usuarioId
             },
             data: prepararDados(req.body)
         })
@@ -244,13 +396,11 @@ router.put('/:id', async (req, res) => {
         const meta = await prisma.metas.findFirst({
             where: {
                 id: Number(req.params.id),
-                usuarioId: req.session.usuarioId
+                usuarioId
             }
         })
 
-        return res.json(
-            await calcularProgresso(meta, req.session.usuarioId)
-        )
+        return res.json(await calcularProgresso(meta, usuarioId))
     } catch (erro) {
         console.error('Erro ao editar meta:', erro)
 
@@ -260,13 +410,11 @@ router.put('/:id', async (req, res) => {
     }
 })
 
-// Excluir meta
+// EXCLUIR META
 router.delete('/:id', async (req, res) => {
     try {
         if (!validarId(req.params.id)) {
-            return res.status(400).json({
-                mensagem: 'ID inválido.'
-            })
+            return res.status(400).json({ mensagem: 'ID inválido.' })
         }
 
         const resultado = await prisma.metas.deleteMany({

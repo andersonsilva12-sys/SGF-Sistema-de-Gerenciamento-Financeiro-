@@ -23,32 +23,34 @@ let temporizadorNotificacao = null;
 let temporizadorOcultarNotificacao = null;
 
 // Exibe uma confirmação temporária centralizada no topo do site.
-function mostrarNotificacaoTopo(texto) {
-    if (temporizadorNotificacao !== null) {
-        window.clearTimeout(temporizadorNotificacao);
+function mostrarNotificacaoTopo(texto, tipo = 'sucesso') {
+    let notificacao = document.getElementById('notificacaoTopoCategorias');
+
+    if (!notificacao) {
+        notificacao = document.createElement('div');
+        notificacao.id = 'notificacaoTopoCategorias';
+        notificacao.className = 'notificacao-topo-categorias';
+        notificacao.setAttribute('role', 'status');
+        notificacao.setAttribute('aria-live', 'polite');
+        document.body.appendChild(notificacao);
     }
 
-    if (temporizadorOcultarNotificacao !== null) {
-        window.clearTimeout(temporizadorOcultarNotificacao);
+    notificacao.textContent = texto;
+    notificacao.classList.remove('erro', 'visivel');
+
+    if (tipo === 'erro') {
+        notificacao.classList.add('erro');
     }
 
-    textoNotificacaoTopo.textContent = texto;
-    notificacaoTopo.hidden = false;
-    notificacaoTopo.classList.remove("visivel");
-
-    window.requestAnimationFrame(() => {
-        notificacaoTopo.classList.add("visivel");
+    requestAnimationFrame(() => {
+        notificacao.classList.add('visivel');
     });
 
-    temporizadorNotificacao = window.setTimeout(() => {
-        notificacaoTopo.classList.remove("visivel");
+    clearTimeout(notificacao.timeout);
 
-        temporizadorOcultarNotificacao = window.setTimeout(() => {
-            if (!notificacaoTopo.classList.contains("visivel")) {
-                notificacaoTopo.hidden = true;
-            }
-        }, 240);
-    }, 2600);
+    notificacao.timeout = setTimeout(() => {
+        notificacao.classList.remove('visivel');
+    }, 3500);
 }
 
 // Exibe a data atual no cabeçalho.
@@ -300,8 +302,8 @@ form.addEventListener("submit", async evento => {
     const url = id ? `/categorias/${encodeURIComponent(id)}` : "/categorias";
     const metodo = id ? "PUT" : "POST";
     const textoSucesso = id
-        ? "Categoria Editada com Sucesso"
-        : "Categoria Criada com Sucesso";
+        ? "Categoria Editada com Sucesso!"
+        : "Nova Categoria Criada!";
 
     btnSalvar.disabled = true;
     mostrarMensagem("");
@@ -348,7 +350,7 @@ document.addEventListener("click", async evento => {
                 fecharModal(modalFormulario);
             }
 
-            mostrarNotificacaoTopo("Categoria Deletada com Sucesso");
+            mostrarNotificacaoTopo("Categoria Excluída!");
             await carregarCategorias();
         } catch (erro) {
             if (!modalTodas.hidden) {

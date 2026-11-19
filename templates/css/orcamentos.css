@@ -673,24 +673,52 @@ footer {
     }
 }
 
-.notificacao {
+/* ========================================
+   NOTIFICAÇÕES NO TOPO
+======================================== */
+
+.notificacao-topo-orcamentos {
     position: fixed;
     top: 20px;
-    right: 20px;
-    background: #238653;
-    color: white;
-    padding: 14px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    left: 50%;
+    transform: translate(-50%, -20px);
+
+    background: #067647;
+    color: #fff;
+
+    padding: 15px 25px;
+    border-radius: 10px;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-10px);
-    transition: 0.3s;
-    z-index: 1000;
+
+    z-index: 99999;
+
+    transition: all 0.3s ease;
+    text-align: center;
 }
 
-.notificacao.visivel {
+.notificacao-topo-orcamentos.visivel {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translate(-50%, 0);
 }
+
+.notificacao-topo-orcamentos.erro {
+    background: #b42318;
+}
+
+@media (max-width: 480px) {
+    .notificacao-topo-orcamentos {
+        top: 12px;
+        width: calc(100vw - 24px);
+        padding: 14px 18px;
+        font-size: 14px;
+    }
+}
+

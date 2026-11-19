@@ -78,14 +78,36 @@ function mostrarMensagem(elemento, texto, tipo = '') {
 }
 
 function mostrarNotificacao(texto, tipo = 'sucesso') {
+    let notificacao = document.getElementById('notificacaoTopoOrcamentos')
+
+    if (!notificacao) {
+        notificacao = document.createElement('div')
+        notificacao.id = 'notificacaoTopoOrcamentos'
+        notificacao.className = 'notificacao-topo-orcamentos'
+
+        notificacao.setAttribute('role', 'status')
+        notificacao.setAttribute('aria-live', 'polite')
+
+        document.body.appendChild(notificacao)
+    }
+
     notificacao.textContent = texto
-    notificacao.className = `notificacao ${tipo} visivel`
 
-    clearTimeout(temporizadorNotificacao)
+    notificacao.classList.remove('erro', 'visivel')
 
-    temporizadorNotificacao = setTimeout(() => {
+    if (tipo === 'erro') {
+        notificacao.classList.add('erro')
+    }
+
+    requestAnimationFrame(() => {
+        notificacao.classList.add('visivel')
+    })
+
+    clearTimeout(notificacao.timeout)
+
+    notificacao.timeout = setTimeout(() => {
         notificacao.classList.remove('visivel')
-    }, 3000)
+    }, 3500)
 }
 
 async function requisicao(url, opcoes = {}) {
@@ -485,8 +507,8 @@ formCaixa.addEventListener('submit', async evento => {
         await carregarCaixas()
 
         const textoSucesso = id
-            ? 'Caixa atualizada com sucesso.'
-            : 'Caixa criada com sucesso.'
+            ? 'Caixa Editada com Sucesso!'
+            : 'Nova Caixa Criada com Sucesso!'
 
         limparFormulario()
         fecharModal(modalCaixa)
@@ -518,16 +540,16 @@ document.querySelectorAll('[data-fechar]').forEach(botao => {
     })
 })
 
-;[modalCaixa, modalHistorico, modalVinculo, modalMovimentacao].forEach(dialogo => {
-    dialogo.addEventListener('click', evento => {
-        if (evento.target === dialogo) {
-            if (dialogo === modalCaixa) limparFormulario()
-            if (dialogo === modalMovimentacao) limparFormularioMovimentacao()
+    ;[modalCaixa, modalHistorico, modalVinculo, modalMovimentacao].forEach(dialogo => {
+        dialogo.addEventListener('click', evento => {
+            if (evento.target === dialogo) {
+                if (dialogo === modalCaixa) limparFormulario()
+                if (dialogo === modalMovimentacao) limparFormularioMovimentacao()
 
-            fecharModal(dialogo)
-        }
+                fecharModal(dialogo)
+            }
+        })
     })
-})
 
 // Vinculação de categorias
 
@@ -593,6 +615,10 @@ formMovimentacao.addEventListener('submit', async evento => {
 
     const caixaId = caixaMovimentacaoId
 
+    const caixaSelecionada = caixas.find(
+        caixa => Number(caixa.id) === Number(caixaId)
+    )
+
     const dados = {
         tipo: campoTipoMovimentacao.value,
         valor: Number(campoValorMovimentacao.value),
@@ -627,11 +653,14 @@ formMovimentacao.addEventListener('submit', async evento => {
         limparFormularioMovimentacao()
         fecharModal(modalMovimentacao)
 
+        const nomeCaixa = caixaSelecionada?.nome || 'Caixa'
+
         mostrarNotificacao(
             dados.tipo === 'deposito'
-                ? 'Depósito registrado com sucesso.'
-                : 'Retirada registrada com sucesso.'
+                ? `Depósito de ${moeda(dados.valor)} na Caixa ${nomeCaixa} Realizado com Sucesso!`
+                : `Saque de ${moeda(dados.valor)} na Caixa ${nomeCaixa} Realizado com Sucesso!`
         )
+
     } catch (erro) {
         mostrarMensagem(mensagemMovimentacao, erro.message, 'erro')
     } finally {
@@ -676,7 +705,7 @@ lista.addEventListener('click', async evento => {
             await carregarCategorias()
             await carregarCaixas()
 
-            mostrarNotificacao('Caixa excluída com sucesso.')
+            mostrarNotificacao('Caixa Excluída!')
         } catch (erro) {
             mostrarNotificacao(erro.message, 'erro')
         } finally {
@@ -1304,11 +1333,8 @@ btnBaixarPdf.addEventListener('click', () => {
             historicoAtual.movimentacoes
         )
 
-        mostrarMensagem(
-            mensagemHistorico,
-            'PDF preparado para download.',
-            'sucesso'
-        )
+        mostrarNotificacao('Histórico Baixado com Sucesso!')
+        
     } catch (erro) {
         mostrarMensagem(
             mensagemHistorico,

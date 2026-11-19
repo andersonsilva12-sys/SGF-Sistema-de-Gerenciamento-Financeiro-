@@ -1,3 +1,4 @@
+
 const formMeta = document.getElementById('formMeta')
 const metaId = document.getElementById('metaId')
 const titulo = document.getElementById('titulo')
@@ -5,99 +6,237 @@ const tipo = document.getElementById('tipo')
 const valorAlvo = document.getElementById('valorAlvo')
 const dataInicio = document.getElementById('dataInicio')
 const dataFim = document.getElementById('dataFim')
-
+const caixaId = document.getElementById('caixaId')
 const listaMetas = document.getElementById('listaMetas')
 const mensagem = document.getElementById('mensagem')
-
 const btnSalvar = document.getElementById('btnSalvar')
 const btnCancelar = document.getElementById('btnCancelar')
-const btnSair = document.getElementById('btnSair')
+const modalMeta = document.getElementById('modalMeta')
+const ajudaCaixa = document.getElementById('ajudaCaixa')
 
 let metas = []
+let caixas = []
 
-document.getElementById("dataAtual").textContent =
-    new Date().toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric"
-    });
+const elementoDataAtual = document.getElementById('dataAtual')
 
-function mostrarMensagem(texto, classe) {
+if (elementoDataAtual) {
+    elementoDataAtual.textContent = new Date().toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+    })
+}
+
+function mostrarMensagem(texto, classe = '') {
     mensagem.textContent = texto
     mensagem.className = `mensagem ${classe}`
 
-    setTimeout(() => {
-        mensagem.textContent = ''
-        mensagem.className = 'mensagem'
-    }, 4000)
+    if (texto) {
+        setTimeout(() => {
+            mensagem.textContent = ''
+            mensagem.className = 'mensagem'
+        }, 4000)
+    }
 }
 
+
+let temporizadorNotificacaoTopo
+
+function mostrarNotificacaoTopo(texto, tipo = 'sucesso') {
+    let notificacao = document.getElementById('notificacaoTopoMetas')
+
+    if (!notificacao) {
+        notificacao = document.createElement('div')
+        notificacao.id = 'notificacaoTopoMetas'
+        notificacao.setAttribute('role', 'status')
+        notificacao.setAttribute('aria-live', 'polite')
+        document.body.appendChild(notificacao)
+    }
+
+    notificacao.textContent = texto
+    notificacao.className = `notificacao-topo-metas ${tipo}`
+
+    requestAnimationFrame(() => {
+        notificacao.classList.add('visivel')
+    })
+
+    clearTimeout(temporizadorNotificacaoTopo)
+
+    temporizadorNotificacaoTopo = setTimeout(() => {
+        notificacao.classList.remove('visivel')
+    }, 3500)
+}
+
+
 function formatarMoeda(valor) {
-    return Number(valor).toLocaleString('pt-BR', {
+    return Number(valor || 0).toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL'
     })
 }
 
 function formatarData(data) {
+    if (!data) return '—'
+
     return new Date(data).toLocaleDateString('pt-BR', {
         timeZone: 'UTC'
     })
 }
 
 function obterDataInput(data) {
-    return new Date(data).toISOString().slice(0, 10)
+    if (!data) return ''
+
+    const valor = String(data)
+
+    if (/^\d{4}-\d{2}-\d{2}/.test(valor)) {
+        return valor.slice(0, 10)
+    }
+
+    const dataConvertida = new Date(data)
+
+    return Number.isNaN(dataConvertida.getTime())
+        ? ''
+        : dataConvertida.toISOString().slice(0, 10)
 }
 
+function escaparHTML(texto) {
+    return String(texto ?? '').replace(/[&<>"']/g, caractere => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[caractere])
+}
+
+async function requisicao(url, opcoes = {}) {
+    const resposta = await fetch(url, {
+        ...opcoes,
+        headers: {
+            ...(opcoes.body
+                ? { 'Content-Type': 'application/json' }
+                : {}),
+            ...(opcoes.headers || {})
+        }
+    })
+
+    const dados = await resposta.json().catch(() => ({}))
+
+    if (resposta.status === 401) {
+        window.location.href = '/'
+        throw new Error('Sessão expirada.')
+    }
+
+    if (!resposta.ok) {
+        throw new Error(
+            dados.mensagem || 'Não foi possível concluir a operação.'
+        )
+    }
+
+    return dados
+}
+
+// CARREGAR CAIXAS PARA O FORMULÁRIO
+async function carregarCaixas() {
+    try {
+        const dados = await requisicao('/caixas')
+
+        caixas = Array.isArray(dados)
+            ? dados
+            : (dados.caixas || dados.dados || [])
+    } catch (erro) {
+        console.error('Erro ao carregar caixas:', erro)
+        caixas = []
+    }
+
+    atualizarSeletorCaixas()
+}
+
+// CARREGAR METAS DO BACK-END
 async function carregarMetas() {
     try {
-        const resposta = await fetch('/metas')
+        const dados = await requisicao('/metas')
 
-        if (resposta.status === 401) {
-            window.location.href = '/'
-            return
-        }
-
-        if (!resposta.ok) {
-            throw new Error('Não foi possível carregar as metas.')
-        }
-
-        metas = await resposta.json()
+        metas = Array.isArray(dados)
+            ? dados
+            : (dados.metas || dados.dados || [])
 
         atualizarResumo()
         renderizarMetas()
     } catch (erro) {
-        console.error(erro)
-        listaMetas.innerHTML = `
-            <p class="mensagem-vazia">Erro ao carregar as metas.</p>
-        `
+        console.error('Erro ao carregar metas:', erro)
+
+        listaMetas.innerHTML =
+            '<p class="mensagem-vazia">Erro ao carregar as metas.</p>'
+
+        mostrarMensagem(erro.message, 'erro')
     }
 }
 
+// ATUALIZAR CONTADORES
 function atualizarResumo() {
-    document.getElementById('totalMetas').textContent = metas.length
+    const totalMetas = document.getElementById('totalMetas')
+    const totalEconomia = document.getElementById('totalEconomia')
+    const totalDespesas = document.getElementById('totalDespesas')
 
-    document.getElementById('totalEconomia').textContent =
-        metas.filter(meta => meta.tipo === 'economia').length
+    if (totalMetas) totalMetas.textContent = metas.length
 
-    document.getElementById('totalDespesas').textContent =
-        metas.filter(meta => meta.tipo === 'despesa').length
+    if (totalEconomia) {
+        totalEconomia.textContent =
+            metas.filter(meta => meta.tipo === 'economia').length
+    }
+
+    if (totalDespesas) {
+        totalDespesas.textContent =
+            metas.filter(meta => meta.tipo === 'despesa').length
+    }
 }
 
+// LOCALIZAR A CAIXA DA META
+function caixaDaMeta(meta) {
+    if (meta.caixa && meta.caixa.nome) {
+        return meta.caixa
+    }
+
+    return caixas.find(caixa =>
+        Number(caixa.id) === Number(meta.caixaId)
+    ) || null
+}
+
+// O BACK-END É A FONTE PRINCIPAL DO PROGRESSO.
+// Não recalculamos o saldo a partir de /caixas, pois ele pode estar desatualizado.
+function progressoDaMeta(meta) {
+    return Math.max(0, Number(meta.progresso || 0))
+}
+
+// RENDERIZAR OS CARDS
 function renderizarMetas() {
-    if (metas.length === 0) {
-        listaMetas.innerHTML = `
-            <p class="mensagem-vazia">
-                Você ainda não cadastrou nenhuma meta.
-            </p>
-        `
+    if (!metas.length) {
+        listaMetas.innerHTML =
+            '<p class="mensagem-vazia">Você ainda não cadastrou nenhuma meta.</p>'
         return
     }
 
     listaMetas.innerHTML = metas.map(meta => {
-        const percentual = Number(meta.percentual) || 0
-        const largura = Math.min(percentual, 100)
-        const excedido = meta.tipo === 'despesa' && percentual > 100
+        const valorAtual = progressoDaMeta(meta)
+        const objetivo = Number(meta.valorAlvo || 0)
+
+        const percentualCalculado = objetivo > 0
+            ? (valorAtual / objetivo) * 100
+            : 0
+
+        // Prioriza o percentual calculado pelo back-end.
+        const percentual = Number.isFinite(Number(meta.percentual))
+            ? Number(meta.percentual)
+            : percentualCalculado
+
+        const largura = Math.min(100, Math.max(0, percentual))
+
+        const restanteBruto = objetivo - valorAtual
+        const faltaEconomizar = Math.max(0, restanteBruto)
+
+        const excedido =
+            meta.tipo === 'despesa' && restanteBruto < 0
 
         const nomeTipo = meta.tipo === 'economia'
             ? 'Economia'
@@ -113,13 +252,20 @@ function renderizarMetas() {
 
         let textoRestante
 
-        if (meta.tipo === 'economia' && meta.restante <= 0) {
+        if (meta.tipo === 'economia' && valorAtual >= objetivo) {
             textoRestante = 'Meta alcançada!'
-        } else if (meta.tipo === 'despesa' && meta.restante < 0) {
-            textoRestante = `Limite excedido em ${formatarMoeda(Math.abs(meta.restante))}`
+        } else if (meta.tipo === 'despesa' && restanteBruto < 0) {
+            textoRestante =
+                `Limite excedido em ${formatarMoeda(Math.abs(restanteBruto))}`
         } else {
-            textoRestante = `${nomeRestante}: ${formatarMoeda(Math.max(0, meta.restante))}`
+            textoRestante = formatarMoeda(faltaEconomizar)
         }
+
+        const caixa = caixaDaMeta(meta)
+        const nomeCaixa =
+            meta.caixaNome ||
+            caixa?.nome ||
+            'Nenhuma caixa vinculada'
 
         return `
             <article class="meta-card">
@@ -132,14 +278,14 @@ function renderizarMetas() {
 
                 <div class="meta-valor">
                     <span>${nomeProgresso}</span>
-                    <strong>${formatarMoeda(meta.progresso)}</strong>
+                    <strong>${formatarMoeda(valorAtual)}</strong>
                 </div>
 
                 <div class="progresso-fundo">
                     <div
                         class="progresso-preenchido ${excedido ? 'excedido' : ''}"
-                        style="width: ${largura}%"
-                    ></div>
+                        style="width: ${largura}%">
+                    </div>
                 </div>
 
                 <div class="meta-percentual">
@@ -148,12 +294,17 @@ function renderizarMetas() {
 
                 <div class="meta-valor">
                     <span>Objetivo</span>
-                    <strong>${formatarMoeda(meta.valorAlvo)}</strong>
+                    <strong>${formatarMoeda(objetivo)}</strong>
                 </div>
 
                 <div class="meta-valor">
                     <span>${nomeRestante}</span>
                     <strong>${textoRestante}</strong>
+                </div>
+
+                <div class="meta-valor">
+                    <span>Caixa vinculada</span>
+                    <strong>${escaparHTML(nomeCaixa)}</strong>
                 </div>
 
                 <div class="meta-detalhes">
@@ -166,8 +317,7 @@ function renderizarMetas() {
                         type="button"
                         class="botao-acao botao-editar"
                         data-acao="editar"
-                        data-id="${meta.id}"
-                    >
+                        data-id="${meta.id}">
                         Editar
                     </button>
 
@@ -175,8 +325,7 @@ function renderizarMetas() {
                         type="button"
                         class="botao-acao botao-excluir"
                         data-acao="excluir"
-                        data-id="${meta.id}"
-                    >
+                        data-id="${meta.id}">
                         Excluir
                     </button>
                 </div>
@@ -185,30 +334,115 @@ function renderizarMetas() {
     }).join('')
 }
 
-function escaparHTML(texto) {
-    return String(texto).replace(/[&<>"']/g, caractere => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    })[caractere])
+// FILTRAR CAIXAS CONFORME O TIPO DA META
+function atualizarSeletorCaixas(valorSelecionado = '') {
+    const tipoSelecionado = tipo.value
+
+    if (!tipoSelecionado) {
+        caixaId.innerHTML =
+            '<option value="">Selecione primeiro o tipo de meta</option>'
+
+        caixaId.disabled = true
+        caixaId.required = true
+
+        ajudaCaixa.textContent =
+            'Escolha o tipo de meta para listar as caixas compatíveis.'
+
+        return
+    }
+
+    const tipoCaixa = tipoSelecionado === 'economia'
+        ? 'reserva'
+        : 'despesa'
+
+    const filtradas = caixas.filter(caixa =>
+        String(caixa.tipo).toLowerCase() === tipoCaixa
+    )
+
+    caixaId.disabled = false
+    caixaId.required = true
+
+    caixaId.innerHTML =
+        '<option value="">Selecione uma caixa</option>' +
+        filtradas.map(caixa => {
+            const informacao = tipoCaixa === 'reserva'
+                ? ` — disponível: ${formatarMoeda(caixa.saldo)}`
+                : ` — limite: ${formatarMoeda(caixa.limiteMensal)}`
+
+            return `
+                <option value="${Number(caixa.id)}">
+                    ${escaparHTML(caixa.nome)}${informacao}
+                </option>
+            `
+        }).join('')
+
+    if (
+        valorSelecionado &&
+        filtradas.some(caixa =>
+            Number(caixa.id) === Number(valorSelecionado)
+        )
+    ) {
+        caixaId.value = String(valorSelecionado)
+    }
+
+    ajudaCaixa.textContent = filtradas.length
+        ? (
+            tipoSelecionado === 'economia'
+                ? 'Selecione uma caixa do tipo Reserva Financeira.'
+                : 'Selecione uma caixa do tipo Despesas.'
+        )
+        : (
+            tipoSelecionado === 'economia'
+                ? 'Você ainda não possui caixas de Reserva Financeira. Cadastre uma em Orçamentos.'
+                : 'Você ainda não possui caixas de Despesas. Cadastre uma em Orçamentos.'
+        )
 }
 
+// ABRIR E FECHAR MODAL
+function abrirModal() {
+    modalMeta.classList.add('aberto')
+    modalMeta.setAttribute('aria-hidden', 'false')
+    document.body.classList.add('modal-meta-aberto')
+
+    setTimeout(() => titulo.focus(), 50)
+}
+
+function fecharModal() {
+    modalMeta.classList.remove('aberto')
+    modalMeta.setAttribute('aria-hidden', 'true')
+    document.body.classList.remove('modal-meta-aberto')
+}
+
+// LIMPAR FORMULÁRIO
 function limparFormulario() {
     formMeta.reset()
     metaId.value = ''
+
     btnSalvar.textContent = 'Cadastrar meta'
     btnCancelar.hidden = true
-    document.getElementById('tituloFormulario').textContent = 'Cadastrar nova meta'
+
+    const tituloFormulario = document.getElementById('tituloFormulario')
+
+    if (tituloFormulario) {
+        tituloFormulario.textContent = 'Cadastrar nova meta'
+    }
+
+    atualizarSeletorCaixas()
 }
 
-function editarMeta(id) {
-    const meta = metas.find(item => item.id === id)
+function novaMeta() {
+    limparFormulario()
+    mostrarMensagem('', '')
+    abrirModal()
+}
 
-    if (!meta) {
-        return
-    }
+// EDITAR META
+function editarMeta(id) {
+    const meta = metas.find(item => Number(item.id) === Number(id))
+
+    if (!meta) return
+
+    limparFormulario()
 
     metaId.value = meta.id
     titulo.value = meta.titulo
@@ -217,43 +451,46 @@ function editarMeta(id) {
     dataInicio.value = obterDataInput(meta.dataInicio)
     dataFim.value = obterDataInput(meta.dataFim)
 
+    atualizarSeletorCaixas(meta.caixaId || meta.caixa?.id || '')
+
+    caixaId.value = String(meta.caixaId || meta.caixa?.id || '')
+
     btnSalvar.textContent = 'Salvar alterações'
     btnCancelar.hidden = false
-    document.getElementById('tituloFormulario').textContent = 'Editar meta'
 
-    formMeta.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-    })
-}
+    const tituloFormulario = document.getElementById('tituloFormulario')
 
-async function excluirMeta(id) {
-    const confirmar = confirm('Deseja realmente excluir esta meta?')
-
-    if (!confirmar) {
-        return
+    if (tituloFormulario) {
+        tituloFormulario.textContent = 'Editar meta'
     }
 
+    abrirModal()
+}
+
+// EXCLUIR META
+
+async function excluirMeta(id) {
+    if (!confirm('Deseja realmente excluir esta meta?')) return
+
     try {
-        const resposta = await fetch(`/metas/${id}`, {
+        await requisicao(`/metas/${id}`, {
             method: 'DELETE'
         })
 
-        const dados = await resposta.json()
+        mostrarNotificacaoTopo('Meta Excluída')
 
-        if (!resposta.ok) {
-            throw new Error(dados.mensagem || 'Erro ao excluir meta.')
-        }
-
-        mostrarMensagem(dados.mensagem, 'sucesso')
         await carregarMetas()
     } catch (erro) {
         mostrarMensagem(erro.message, 'erro')
     }
 }
 
-formMeta.addEventListener('submit', async (evento) => {
+
+// CADASTRAR OU EDITAR META
+formMeta.addEventListener('submit', async evento => {
     evento.preventDefault()
+
+    if (!formMeta.reportValidity()) return
 
     if (dataInicio.value > dataFim.value) {
         mostrarMensagem(
@@ -263,64 +500,111 @@ formMeta.addEventListener('submit', async (evento) => {
         return
     }
 
+    if (!caixaId.value) {
+        mostrarMensagem(
+            'Selecione uma caixa compatível com o tipo da meta.',
+            'erro'
+        )
+        return
+    }
+
     const dados = {
-        titulo: titulo.value,
+        titulo: titulo.value.trim(),
         tipo: tipo.value,
-        valorAlvo: valorAlvo.value,
+        valorAlvo: Number(valorAlvo.value),
         dataInicio: dataInicio.value,
-        dataFim: dataFim.value
+        dataFim: dataFim.value,
+        caixaId: Number(caixaId.value)
     }
 
     const id = metaId.value
-    const metodo = id ? 'PUT' : 'POST'
-    const url = id ? `/metas/${id}` : '/metas'
 
     try {
-        const resposta = await fetch(url, {
-            method: metodo,
-            headers: {
-                'Content-Type': 'application/json'
-            },
+        await requisicao(id ? `/metas/${id}` : '/metas', {
+            method: id ? 'PUT' : 'POST',
             body: JSON.stringify(dados)
         })
 
-        const resultado = await resposta.json()
 
-        if (!resposta.ok) {
-            throw new Error(resultado.mensagem || 'Erro ao salvar meta.')
+        if (id) {
+            mostrarMensagem('Meta atualizada com sucesso!', 'sucesso')
+        } else {
+            mostrarNotificacaoTopo('Nova Meta Criada')
         }
 
-        mostrarMensagem(
-            id ? 'Meta atualizada com sucesso!' : 'Meta cadastrada com sucesso!',
-            'sucesso'
-        )
 
         limparFormulario()
+        fecharModal()
+
+        await carregarCaixas()
         await carregarMetas()
     } catch (erro) {
         mostrarMensagem(erro.message, 'erro')
     }
 })
 
-listaMetas.addEventListener('click', (evento) => {
+// BOTÕES DE EDITAR E EXCLUIR
+listaMetas.addEventListener('click', evento => {
     const botao = evento.target.closest('button[data-acao]')
 
-    if (!botao) {
-        return
-    }
-
-    const id = Number(botao.dataset.id)
+    if (!botao) return
 
     if (botao.dataset.acao === 'editar') {
-        editarMeta(id)
+        editarMeta(Number(botao.dataset.id))
     }
 
     if (botao.dataset.acao === 'excluir') {
-        excluirMeta(id)
+        excluirMeta(Number(botao.dataset.id))
     }
 })
 
-btnCancelar.addEventListener('click', limparFormulario)
+// EVENTOS DO MODAL
+document
+    .getElementById('btnAbrirModalMeta')
+    .addEventListener('click', novaMeta)
+
+document
+    .getElementById('btnFecharModalMeta')
+    .addEventListener('click', fecharModal)
+
+document
+    .getElementById('btnCancelarModal')
+    .addEventListener('click', () => {
+        limparFormulario()
+        fecharModal()
+    })
+
+document
+    .querySelectorAll('[data-fechar-modal="true"]')
+    .forEach(elemento => {
+        elemento.addEventListener('click', fecharModal)
+    })
+
+tipo.addEventListener('change', () => {
+    atualizarSeletorCaixas()
+})
+
+btnCancelar.addEventListener('click', () => {
+    limparFormulario()
+
+    const tituloFormulario = document.getElementById('tituloFormulario')
+
+    if (tituloFormulario) {
+        tituloFormulario.textContent = 'Cadastrar nova meta'
+    }
+})
+
+document.addEventListener('keydown', evento => {
+    if (
+        evento.key === 'Escape' &&
+        modalMeta.classList.contains('aberto')
+    ) {
+        fecharModal()
+    }
+})
+
+// SAIR DA CONTA
+const btnSair = document.getElementById('btnSair')
 
 if (btnSair) {
     btnSair.addEventListener('click', async () => {
@@ -334,4 +618,10 @@ if (btnSair) {
     })
 }
 
-carregarMetas()
+// INICIALIZAÇÃO
+async function iniciar() {
+    await carregarCaixas()
+    await carregarMetas()
+}
+
+iniciar()

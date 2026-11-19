@@ -23,6 +23,41 @@ let categorias = []
 let mesModalAberto = null
 let mesParaReabrir = null
 
+
+function mostrarNotificacaoTopo(texto, tipo = 'sucesso') {
+
+    let notificacao = document.getElementById('notificacaoTopoMovimentacoes');
+
+    if (!notificacao) {
+        notificacao = document.createElement('div');
+        notificacao.id = 'notificacaoTopoMovimentacoes';
+        notificacao.className = 'notificacao-topo-movimentacoes';
+
+        notificacao.setAttribute('role', 'status');
+        notificacao.setAttribute('aria-live', 'polite');
+
+        document.body.appendChild(notificacao);
+    }
+
+    notificacao.textContent = texto;
+
+    notificacao.classList.remove('erro', 'visivel');
+
+    if (tipo === 'erro') {
+        notificacao.classList.add('erro');
+    }
+
+    requestAnimationFrame(() => {
+        notificacao.classList.add('visivel');
+    });
+
+    clearTimeout(notificacao.timeout);
+
+    notificacao.timeout = setTimeout(() => {
+        notificacao.classList.remove('visivel');
+    }, 3500);
+}
+
 // Por padrão, o resumo apresenta o mês atual no horário local do usuário.
 let mesResumoSelecionado = (() => {
     const agora = new Date()
@@ -838,12 +873,12 @@ function criarModalHistoricoMes() {
     const thead = document.createElement('thead')
     const linhaCabecalho = document.createElement('tr')
 
-    ;['Descrição', 'Categoria', 'Data', 'Tipo', 'Valor', 'Ações']
-        .forEach(texto => {
-            const th = document.createElement('th')
-            th.textContent = texto
-            linhaCabecalho.appendChild(th)
-        })
+        ;['Descrição', 'Categoria', 'Data', 'Tipo', 'Valor', 'Ações']
+            .forEach(texto => {
+                const th = document.createElement('th')
+                th.textContent = texto
+                linhaCabecalho.appendChild(th)
+            })
 
     thead.appendChild(linhaCabecalho)
 
@@ -896,20 +931,20 @@ function renderizarDetalhesMes(chave) {
     const totais = calcularTotais(itens)
     resumo.replaceChildren()
 
-    ;[
-        ['Receitas', totais.receitas],
-        ['Despesas', totais.despesas],
-        ['Saldo', totais.saldo]
-    ].forEach(([rotulo, numero]) => {
-        const bloco = document.createElement('span')
-        bloco.append(`${rotulo}: `)
+        ;[
+            ['Receitas', totais.receitas],
+            ['Despesas', totais.despesas],
+            ['Saldo', totais.saldo]
+        ].forEach(([rotulo, numero]) => {
+            const bloco = document.createElement('span')
+            bloco.append(`${rotulo}: `)
 
-        const forte = document.createElement('strong')
-        forte.textContent = formatarMoeda(numero)
+            const forte = document.createElement('strong')
+            forte.textContent = formatarMoeda(numero)
 
-        bloco.appendChild(forte)
-        resumo.appendChild(bloco)
-    })
+            bloco.appendChild(forte)
+            resumo.appendChild(bloco)
+        })
 
     itens.forEach(item => {
         const linha = document.createElement('tr')
@@ -1135,11 +1170,10 @@ formMovimentacao.addEventListener('submit', async evento => {
 
         limparFormulario()
 
-        mostrarMensagem(
+        mostrarNotificacaoTopo(
             id
-                ? 'Movimentação atualizada com sucesso!'
-                : 'Movimentação cadastrada com sucesso!',
-            'sucesso'
+                ? 'Movimentação Editada com Sucesso!'
+                : 'Nova Movimentação Criada!'
         )
 
         if (deveReabrirMes && mesAtualizado) {
@@ -1171,10 +1205,7 @@ async function excluirMovimentacao(id) {
 
         await carregarMovimentacoes()
 
-        mostrarMensagem(
-            'Movimentação excluída com sucesso!',
-            'sucesso'
-        )
+        mostrarNotificacaoTopo('Movimentação Excluída!')
 
         if (chave && mesModalAberto === chave) {
             abrirModalMes(chave)
@@ -1225,19 +1256,10 @@ async function excluirQuadranteMes(chave, botao) {
         dialogMes.close()
     }
 
-    if (falhas.length === 0) {
-        mostrarMensagem(
-            `Quadrante ${nomeMes(chave)} excluído com ${excluidas} movimentação(ões).`,
-            'sucesso'
-        )
-    } else {
-        mostrarMensagem(
-            `${excluidas} movimentação(ões) foram excluídas, mas ${falhas.length} não puderam ser excluídas. Tente novamente.`,
-            'erro'
-        )
-    }
+    mostrarNotificacaoTopo(
+        `Todas as movimentações do mês de ${nomeMes(chave)} foram excluídas!`
+    )
 }
-
 // Carregar uma biblioteca externa sob demanda para gerar o PDF.
 function carregarScript(url, nomeGlobalDisponivel) {
     if (nomeGlobalDisponivel()) {
@@ -1365,7 +1387,7 @@ async function baixarPdfMesAtual() {
 
         pdf.save(`movimentacoes-${chave}.pdf`)
 
-        mostrarMensagemNoModalMes('PDF gerado com sucesso.', 'sucesso')
+        mostrarNotificacaoTopo('Movimentações Baixadas com Sucesso!')
     } catch (erro) {
         mostrarMensagemNoModalMes(
             `${erro.message} Verifique sua conexão com a internet e tente novamente.`,
