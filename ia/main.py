@@ -49,7 +49,7 @@ class MensagemChat(BaseModel):
 
 # Configuração do modelo Gemini
 modelo = ChatGoogleGenerativeAI(
-    model="gemini-3.5-flash",
+    model="gemini-3.5-flash-lite",
     google_api_key=GOOGLE_API_KEY,
     max_retries=2
 )
